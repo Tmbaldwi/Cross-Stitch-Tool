@@ -1,41 +1,15 @@
-from pathlib import Path
 import cv2
 import numpy as np
-from PIL import Image
-from scripts.utility.image_processing_utility import (
-    convert_image_to_pixel_array, 
-    convert_pixel_array_to_image
-)
 
-BASE_DIR = Path(__file__).resolve().parents[1]  # project-root
-test_image_path = BASE_DIR / "test_resources" / "ruinedImage.png"
-
-def compress_image_and_return_pixel_sizes(input_path, output_path):
-    # read image and convert to pixel array
-    #pixel_array = convert_image_to_pixel_array(input_path)
-    input_path = test_image_path
-
+def return_compressed_image_size(npImageArray):
     # get pixel size
-    newW, newH = get_pixel_size_fourier_transform_method(input_path)
+    newW, newH = get_pixel_size_fourier_transform_method(npImageArray)
 
-    oldW, oldH = Image.open(input_path).size
+    return newW, newH
 
-    pixel_array = convert_image_to_pixel_array(input_path)
-    new_pixel_array = compress_pixel_array(pixel_array, round(oldW/newW) )
-    convert_pixel_array_to_image(new_pixel_array, "output.png")
-
-    # compress image
-    # print("Compressing image")
-    #compressed_image = compress_pixel_array(pixel_array, pixel_size_options[0][0])
-
-    # convert pixel array back and write image
-    #convert_pixel_array_to_image(compressed_image, output_path)
-
-    #return pixel_size_options
-
-def get_pixel_size_fourier_transform_method(input_path):
+def get_pixel_size_fourier_transform_method(npImageArray):
     # Convert image to grayscale
-    image = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
+    image = cv2.imdecode(npImageArray, cv2.IMREAD_GRAYSCALE)
 
     # Compute the ImagePeriodogram (place zero-frequency component in the top left)
     image = np.float32(image)
@@ -78,24 +52,3 @@ def remove_smooth_background(data):
 
     # Remove the trend from our data, smoothing it out
     return data - trend
-
-def compress_pixel_array(image_array, pixel_size):
-    old_height = image_array.shape[0]
-    old_width = image_array.shape[1]
-
-    new_height = old_height // pixel_size
-    new_width = old_width // pixel_size
-
-    print("old height: " + str(old_height) + "   | new height: " + str(new_height))
-    print("old width: " + str(old_width) + "   | new height: " + str(new_width))
-
-    new_image_array = []
-
-    offset = pixel_size // 2
-    
-    for row in range(new_height):
-        new_image_array.append([])
-        for col in range(new_width):
-            new_image_array[row].append(image_array[row*pixel_size + offset,col*pixel_size + offset ])
-
-    return new_image_array

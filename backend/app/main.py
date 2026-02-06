@@ -1,10 +1,7 @@
-from scripts.image_resizing import compress_image_and_return_pixel_sizes
 from fastapi import FastAPI
-from routers import hello
+from app.routers import image
 
-app = FastAPI(title="Minimal API Example")
+app = FastAPI(title="Cross Stitch Tool Backend")
 
 # Prefix all routes with /api
-app.include_router(hello.router, prefix="/api")
-
-compress_image_and_return_pixel_sizes("fake", "fake")
+app.include_router(image.router, prefix="/api")
