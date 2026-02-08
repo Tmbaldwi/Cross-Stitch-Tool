@@ -1,12 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { FlowManager } from "./flow-manager/flow-manager";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [FlowManager],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('frontend');
 }
