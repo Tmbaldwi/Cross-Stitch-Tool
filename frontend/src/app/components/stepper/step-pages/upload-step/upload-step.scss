@@ -1,0 +1,42 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.upload-box{
+    width: 600px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px dashed grey;
+    border-radius: 8px;
+    background-color: #1F1F1F;
+}
+
+.sample-image-container{
+    display: grid;
+    width: 600px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.image-box{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    border: 2px solid grey;
+    border-radius: 8px;
+    background-color: #1F1F1F;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+        height: auto;
+        width: auto;
+    }
+}
