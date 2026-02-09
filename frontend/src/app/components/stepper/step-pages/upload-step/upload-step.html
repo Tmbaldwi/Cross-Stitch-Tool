@@ -1,13 +1,21 @@
 <section class="container">
-    <div class="upload-box">
-        <span>Choose file</span>
-        <span>{{file ? file.name : 'or drag and drop file here' }}</span>
-        <input class="file-input" type="file">
-    </div>
+    <label class="upload-box" for="file">
+        @if(!this.file){
+            <input type="file" name="file" id="file" (change)="onFileChange($event.target.files)">
+            <span class="upload-text">Drop image here or click to browse</span>
+            <span>(or select sample below)</span>
+        }
+        @else{
+            <div class="uploaded-image-box">
+                <img [src]="previewUrl">
+            </div>
+        }
+    </label>
+
     <div class="sample-image-container">
         @for(image of sampleImages; track image.id){
             <div class="image-box">
-                <img src="{{image.imageUrl}}">
+                <img [src]="image.imageUrl">
             </div>
         }
     </div>

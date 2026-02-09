@@ -14,4 +14,26 @@ export class UploadStep {
   ]
 
   file: File | null = null;
+  previewUrl: string | null = null;
+
+  onFileChange(files: FileList | null){
+    if(!files || files.length === 0){
+      this.clearFile();
+      return;
+    }
+
+    this.clearFile();
+
+    this.file = files[0];
+    this.previewUrl = URL.createObjectURL(this.file);
+  }
+
+  clearFile(){
+    if(this.previewUrl){
+      URL.revokeObjectURL(this.previewUrl);
+    }
+
+    this.file = null;
+    this.previewUrl = null;
+  }
 }
