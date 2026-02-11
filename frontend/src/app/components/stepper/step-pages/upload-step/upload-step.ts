@@ -40,7 +40,7 @@ export class UploadStep {
     this.fileChange.emit(this.file);
 
     this.uploadBoxBorderStyle.set('4px solid !important');
-    this.uploadBoxBorderColor.set(selectedBorderColor);
+    this.selectImage(0);
   }
 
   clearFile() {
