@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FlowManager } from './flow-manager';
+import { ImageScalingStep } from './image-scaling-step';
 
-describe('FlowManager', () => {
-  let component: FlowManager;
-  let fixture: ComponentFixture<FlowManager>;
+describe('ImageScalingStep', () => {
+  let component: ImageScalingStep;
+  let fixture: ComponentFixture<ImageScalingStep>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FlowManager]
+      imports: [ImageScalingStep]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(FlowManager);
+    fixture = TestBed.createComponent(ImageScalingStep);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { FlowManager } from "./flow-manager/flow-manager";
+import { CrossStitchToolFlowManager } from "./cross-stitch-tool-flow-manager/cross-stitch-tool-flow-manager";
 
 @Component({
   selector: 'app-root',
-  imports: [FlowManager],
+  imports: [CrossStitchToolFlowManager],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

@@ -1,11 +1,14 @@
-import { Component, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { FileDragAndDrop } from '../../../../directives/file-drag-and-drop';
+import { CdkStepper } from '@angular/cdk/stepper';
+import { ImageService } from '../../../../services/image-service';
+import { MatButtonModule } from '@angular/material/button';
 
 const selectedBorderColor : string = "#00F0FF";
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop],
+  imports: [FileDragAndDrop, MatButtonModule],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
@@ -20,12 +23,16 @@ export class UploadStep {
   file: File | null = null;
   previewUrl: string | null = null;
 
-  fileChange = output<File | null>();
-
   uploadBoxBorderStyle = signal('4px dashed !important');
   uploadBoxBorderColor = signal('grey');
   selectedBorderColor: string = selectedBorderColor;
 
+  private service = inject(ImageService);
+  private stepper = inject(CdkStepper);
+
+  readonly isButtonDisabled = computed(() => {
+    return this.service.originalFile() === null;
+  });
 
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0) {
@@ -37,7 +44,6 @@ export class UploadStep {
 
     this.file = files[0];
     this.previewUrl = URL.createObjectURL(this.file);
-    this.fileChange.emit(this.file);
 
     this.uploadBoxBorderStyle.set('4px solid !important');
     this.selectImage(0);
@@ -50,7 +56,6 @@ export class UploadStep {
 
     this.file = null;
     this.previewUrl = null;
-    this.fileChange.emit(null);
 
     this.uploadBoxBorderStyle.set('4px dashed !important');
   }
@@ -70,9 +75,12 @@ export class UploadStep {
       this.uploadBoxBorderColor.set('grey');
     }
     else{
+      this.service.setFile(this.file);
       this.uploadBoxBorderColor.set('#00F0FF');
     }
   }
 
-  
+  nextStep(){
+    this.stepper.next();
+  }
 }

@@ -34,7 +34,13 @@
         </div>
         
         <div class="button-box">
-            <button class="button-next">Resize Image &rarr;</button>
+            <button 
+                matButton="filled"
+                (click)="this.nextStep()"
+                [disabled]="isButtonDisabled()"
+            >
+                Scale Image &rarr;
+            </button>
         </div>
     </div>
 </section>

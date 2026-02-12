@@ -6,8 +6,8 @@ from pydantic import BaseModel
 from app.scripts.image_resizing import return_compressed_image_size
 
 router = APIRouter(
-    prefix="/api/images",
-    tags=["Images"]
+    prefix="/image",
+    tags=["Image"]
 )
 
 class ResizeAnalysisResponse(BaseModel):
