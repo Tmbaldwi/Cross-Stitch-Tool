@@ -16,6 +16,14 @@
             }
             @else{
                 <div class="uploaded-image-box">
+                    <button 
+                        mat-icon-button 
+                        aria-label="Close dialog" 
+                        class="close-button"
+                        (click)="clearFile()"
+                    >
+                        <mat-icon>close</mat-icon>
+                    </button>
                     <img [src]="previewUrl">
                 </div>
             }

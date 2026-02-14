@@ -4,12 +4,14 @@ import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
 import { ImageService } from '../../../services/image-service';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
+import {MatIconModule} from '@angular/material/icon';
 
 const selectedBorderColor : string = "#005CBB";
+const unselectedBorderColor : string = 'grey';
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule],
+  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
@@ -27,14 +29,10 @@ export class UploadStep {
   previewUrl: string | null = null;
 
   uploadBoxBorderStyle = signal('4px dashed !important');
-  uploadBoxBorderColor = signal('grey');
+  uploadBoxBorderColor = signal(unselectedBorderColor);
   selectedBorderColor: string = selectedBorderColor;
 
   private service = inject(ImageService);
-
-  // readonly isButtonDisabled = computed(() => {
-  //   return this.service.originalFile() === null;
-  // });
 
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0) {
@@ -59,7 +57,19 @@ export class UploadStep {
     this.file = null;
     this.previewUrl = null;
 
+    if(this.selectedFileIdx == 0){
+      this.service.setFile(null);
+      this.form().patchValue({ file: null });
+      this.selectedFileIdx = -1;
+    }
+    else{
+      // TODO remove when sample images are implemented
+      this.service.setFile(null);
+      this.form().patchValue({ file: null });
+    }
+
     this.uploadBoxBorderStyle.set('4px dashed !important');
+    this.uploadBoxBorderColor.set(unselectedBorderColor);
   }
 
   selectUploadImage(){
@@ -74,7 +84,7 @@ export class UploadStep {
     if(this.selectedFileIdx > 0){
       // TODO set file to image
       
-      this.uploadBoxBorderColor.set('grey');
+      this.uploadBoxBorderColor.set(unselectedBorderColor);
     }
     else{
       // TODO adjust for sample images
