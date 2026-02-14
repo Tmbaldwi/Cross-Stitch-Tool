@@ -1,18 +1,21 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
-import { FileDragAndDrop } from '../../../../directives/file-drag-and-drop';
-import { CdkStepper } from '@angular/cdk/stepper';
-import { ImageService } from '../../../../services/image-service';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
+import { ImageService } from '../../../services/image-service';
+import { FormGroup } from '@angular/forms';
+import { MatStepperModule } from '@angular/material/stepper';
 
-const selectedBorderColor : string = "#00F0FF";
+const selectedBorderColor : string = "#005CBB";
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop, MatButtonModule],
+  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
 export class UploadStep {
+  readonly form = input.required<FormGroup>();
+
   sampleImages = [
     { id: 1, imageUrl: 'https://picsum.photos/id/237/500/300' },
     { id: 2, imageUrl: 'https://picsum.photos/600/300' },
@@ -28,11 +31,10 @@ export class UploadStep {
   selectedBorderColor: string = selectedBorderColor;
 
   private service = inject(ImageService);
-  private stepper = inject(CdkStepper);
 
-  readonly isButtonDisabled = computed(() => {
-    return this.service.originalFile() === null;
-  });
+  // readonly isButtonDisabled = computed(() => {
+  //   return this.service.originalFile() === null;
+  // });
 
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0) {
@@ -75,12 +77,11 @@ export class UploadStep {
       this.uploadBoxBorderColor.set('grey');
     }
     else{
-      this.service.setFile(this.file);
-      this.uploadBoxBorderColor.set('#00F0FF');
-    }
-  }
+      // TODO adjust for sample images
+      this.form().patchValue({ file: this.file });
 
-  nextStep(){
-    this.stepper.next();
+      this.service.setFile(this.file);
+      this.uploadBoxBorderColor.set(selectedBorderColor);
+    }
   }
 }

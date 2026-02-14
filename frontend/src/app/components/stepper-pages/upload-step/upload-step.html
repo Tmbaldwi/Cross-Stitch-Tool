@@ -36,8 +36,9 @@
         <div class="button-box">
             <button 
                 matButton="filled"
-                (click)="this.nextStep()"
-                [disabled]="isButtonDisabled()"
+                matStepperNext
+                [disabled]="form().invalid"
+                class="light-scheme-button"
             >
                 Scale Image &rarr;
             </button>

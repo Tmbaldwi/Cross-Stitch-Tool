@@ -1,19 +1,19 @@
-import { Component } from '@angular/core';
-import { StepperDisplay } from "../components/stepper/stepper-display/stepper-display";
-import { CdkStep } from '@angular/cdk/stepper';
-import { UploadStep } from "../components/stepper/step-pages/upload-step/upload-step";
-import { ImageScalingStep } from "../components/stepper/step-pages/image-scaling-step/image-scaling-step";
+import { Component, inject } from '@angular/core';
+import {MatStepperModule} from '@angular/material/stepper';
+import { FormBuilder, Validators } from '@angular/forms';
+import { UploadStep } from '../components/stepper-pages/upload-step/upload-step';
+import { ImageScalingStep } from '../components/stepper-pages/image-scaling-step/image-scaling-step';
 
 @Component({
   selector: 'app-cross-stitch-tool-flow-manager',
-  imports: [StepperDisplay, CdkStep, UploadStep, ImageScalingStep],
+  imports: [UploadStep, ImageScalingStep, MatStepperModule],
   templateUrl: './cross-stitch-tool-flow-manager.html',
   styleUrl: './cross-stitch-tool-flow-manager.scss',
 })
 export class CrossStitchToolFlowManager {
-  uploadedFile: File | null = null;
+  private _formBuilder = inject(FormBuilder);
 
-  onFileSelected(file: File | null){
-    this.uploadedFile = file;
-  }
+  uploadForm = this._formBuilder.group({
+    file: [null, Validators.required],
+  });
 }

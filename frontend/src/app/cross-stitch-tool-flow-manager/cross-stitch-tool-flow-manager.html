@@ -1,15 +1,20 @@
 <div class="container">
   <h2>Cross Stitch Tool</h2>
-  <stepper-display>
-    <cdk-step>
-      <app-upload-step/>
-    </cdk-step>
-    <cdk-step>
+  <mat-stepper [linear]="true">
+    <mat-step [stepControl]="uploadForm">
+      <ng-template matStepLabel>Upload or Select Image</ng-template>
+      <app-upload-step
+        [form]="uploadForm"
+      />
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel>Scale Image</ng-template>
       <app-image-scaling-step/>
-    </cdk-step>
-    <cdk-step>
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel>Select Thread Colors</ng-template>
       Step 3 page
-    </cdk-step>
-  </stepper-display>
+    </mat-step>
+  </mat-stepper>
 </div>
 <hr>

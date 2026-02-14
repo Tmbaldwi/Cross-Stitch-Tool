@@ -1,6 +1,6 @@
 import { CdkStepper } from '@angular/cdk/stepper';
 import { Component, inject, OnInit } from '@angular/core';
-import { ImageService } from '../../../../services/image-service';
+import { ImageService } from '../../../services/image-service';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -13,7 +13,6 @@ export class ImageScalingStep {
   private service = inject(ImageService);
 
   ngOnInit(){
-    console.log(this.stepper.selectedIndex)
     this.stepper.selectionChange
       .subscribe(e => {
         if(e.selectedIndex === 1){
