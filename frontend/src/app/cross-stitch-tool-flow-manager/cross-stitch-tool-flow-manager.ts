@@ -3,6 +3,7 @@ import {MatStepperModule} from '@angular/material/stepper';
 import { FormBuilder, Validators } from '@angular/forms';
 import { UploadStep } from '../components/stepper-pages/upload-step/upload-step';
 import { ImageScalingStep } from '../components/stepper-pages/image-scaling-step/image-scaling-step';
+import { allowedFileTypes } from '../validators/file-type.validator';
 
 @Component({
   selector: 'app-cross-stitch-tool-flow-manager',
@@ -14,6 +15,6 @@ export class CrossStitchToolFlowManager {
   private _formBuilder = inject(FormBuilder);
 
   uploadForm = this._formBuilder.group({
-    file: [null, Validators.required],
+    file: [null, [Validators.required, allowedFileTypes(['png', 'jpeg', 'jpg'])]],
   });
 }

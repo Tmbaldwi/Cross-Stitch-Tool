@@ -50,6 +50,11 @@
     color: #aaa;
 }
 
+.error-text{
+    font-size: 1.2em;
+    color: red;
+}
+
 input[type="file"]{
     position: absolute;
     height: 100%;
@@ -98,7 +103,7 @@ input[type="file"]{
     justify-content: center;
     align-items: center;
     padding: 5px;
-    border: 2px solid grey;
+    border: 2px solid;
     border-radius: 8px;
     background-color: #1F1F1F;
     cursor: pointer;

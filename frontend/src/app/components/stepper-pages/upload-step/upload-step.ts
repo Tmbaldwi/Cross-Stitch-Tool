@@ -2,12 +2,14 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
 import { ImageService } from '../../../services/image-service';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import {MatIconModule} from '@angular/material/icon';
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
+const uploadedImageBorderStyle : string = '4px solid';
+const unuploadedImageBorderStyle : string = '4px dashed';
 
 @Component({
   selector: 'app-upload-step',
@@ -24,29 +26,53 @@ export class UploadStep {
     { id: 3, imageUrl: 'https://picsum.photos/500/400' },
   ];
 
-  selectedFileIdx : number = -1;
-  file: File | null = null;
+  selectedFileIdx = signal<number>(-1);
+  file = signal<File | null>(null);
   previewUrl: string | null = null;
+  errorMessage = signal<string | null>(null);
 
-  uploadBoxBorderStyle = signal('4px dashed !important');
-  uploadBoxBorderColor = signal(unselectedBorderColor);
-  selectedBorderColor: string = selectedBorderColor;
+  sampleImageBoxBorder = computed(() => {
+    return (idx: number) => this.selectedFileIdx() === idx ? selectedBorderColor : unselectedBorderColor;
+  })
+
+  uploadBoxBorder = computed(() => {
+    let borderStyle : string = !this.file() ? unuploadedImageBorderStyle : uploadedImageBorderStyle;
+
+    return this.selectedFileIdx() === 0
+      ? `${borderStyle} ${selectedBorderColor}`
+      : `${borderStyle} ${unselectedBorderColor}`;
+  });
 
   private service = inject(ImageService);
 
   onFileChange(files: FileList | null) {
-    if (!files || files.length === 0) {
+    if (!files || files.length === 0 || files[0] == null) {
       this.clearFile();
       return;
     }
 
+    // Clear previous and set form for validation
     this.clearFile();
+    this.file.set(files[0]);
+    this.form().patchValue({ file: this.file() });
 
-    this.file = files[0];
-    this.previewUrl = URL.createObjectURL(this.file);
+    // Form validation
+    const fileControl = this.form().get('file');
+    fileControl?.markAsTouched();
+    fileControl?.updateValueAndValidity();
 
-    this.uploadBoxBorderStyle.set('4px solid !important');
+    if(fileControl?.invalid){
+      this.form().patchValue({ file: null })
+      this.clearFile();
+      this.errorMessage.set("File type must be png, jpg, or jpeg")
+      return;
+    }
+
+    // If validation passes, keep them set
+    this.errorMessage.set(null);
+    this.previewUrl = URL.createObjectURL(this.file()!);
     this.selectImage(0);
+
   }
 
   clearFile() {
@@ -54,44 +80,39 @@ export class UploadStep {
       URL.revokeObjectURL(this.previewUrl);
     }
 
-    this.file = null;
+    this.file.set(null);
     this.previewUrl = null;
 
-    if(this.selectedFileIdx == 0){
-      this.service.setFile(null);
-      this.form().patchValue({ file: null });
-      this.selectedFileIdx = -1;
-    }
-    else{
-      // TODO remove when sample images are implemented
-      this.service.setFile(null);
-      this.form().patchValue({ file: null });
-    }
+    // TODO this will need to be changed for sample images
+    this.service.setFile(null);
+    this.form().patchValue({ file: null });
 
-    this.uploadBoxBorderStyle.set('4px dashed !important');
-    this.uploadBoxBorderColor.set(unselectedBorderColor);
+    if(this.selectedFileIdx() === 0){
+      this.selectedFileIdx.set(-1);
+    }
   }
 
   selectUploadImage(){
-    if(this.file != null && this.selectedFileIdx > 0){
+    if(this.file() != null && this.selectedFileIdx() > 0){
       this.selectImage(0);
     }
   }
 
   selectImage(idx: number){
-    this.selectedFileIdx = idx;
+    this.selectedFileIdx.set(idx);
 
-    if(this.selectedFileIdx > 0){
-      // TODO set file to image
-      
-      this.uploadBoxBorderColor.set(unselectedBorderColor);
-    }
-    else{
+    if(idx === 0 && this.file()){
       // TODO adjust for sample images
-      this.form().patchValue({ file: this.file });
-
-      this.service.setFile(this.file);
-      this.uploadBoxBorderColor.set(selectedBorderColor);
+      this.service.setFile(this.file());
     }
+
+    if(idx > 0){
+      // TODO handle sample images
+    }
+  }
+
+  onCloseClick(event: Event){
+    event.stopPropagation();
+    this.clearFile();
   }
 }
