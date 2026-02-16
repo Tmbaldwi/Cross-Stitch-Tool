@@ -1,12 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CrossStitchToolFlowManager } from "./cross-stitch-tool-flow-manager/cross-stitch-tool-flow-manager";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [CrossStitchToolFlowManager],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('frontend');
 }

@@ -1,0 +1,64 @@
+<section class="container">
+    <div class="contents">
+        <label 
+            class="upload-box" 
+            for="file" 
+            [style.border]="uploadBoxBorder()"
+            appFileDragAndDrop 
+            (fileChangesEmitter)="onFileChange($event)"
+            (click)="selectUploadImage()"
+        >
+            @if(this.file() == null){
+                <input 
+                    type="file" 
+                    name="file" 
+                    id="file" 
+                    formControlName="file"
+                    (change)="onFileChange($event.target.files)"
+                    accept="image/png, image/jpg, image/jpeg"
+                >
+                <span class="upload-text">Drop image here or click to browse</span>
+                <span class="upload-subtext">(or select sample below)</span>
+                @if(errorMessage()){
+                    <span class="error-text">{{errorMessage()}}</span>
+                }
+            }
+            @else{
+                <div class="uploaded-image-box">
+                    <button 
+                        mat-icon-button 
+                        aria-label="Close dialog" 
+                        class="close-button"
+                        (click)="onCloseClick($event)"
+                    >
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <img [src]="previewUrl">
+                </div>
+            }
+        </label>
+
+        <div class="sample-image-container">
+            @for(image of sampleImages; track image.id){
+                <div 
+                    class="image-box" 
+                    (click)="selectImage(image.id)"
+                    [style.border-color]="sampleImageBoxBorder()(image.id)"
+                >
+                    <img [src]="image.imageUrl">
+                </div>
+            }
+        </div>
+        
+        <div class="button-box">
+            <button 
+                matButton="filled"
+                matStepperNext
+                [disabled]="form().invalid"
+                class="light-scheme-button"
+            >
+                Scale Image &rarr;
+            </button>
+        </div>
+    </div>
+</section>

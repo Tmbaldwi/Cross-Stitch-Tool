@@ -1,0 +1,124 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.contents{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.upload-box{
+    width: 100%;
+    min-width: 200px;
+    max-width: 1000px;
+
+    height: min(50vh, 500px);
+    min-height: 100px;
+    max-height: 500px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: #1F1F1F;
+
+    font-family: sans-serif;
+    text-align: center;
+}
+
+.upload-box:hover{    
+    .upload-text, .upload-subtext{
+        color: white;
+    }
+}
+
+.upload-text{
+    font-size: 1.2em;
+    color: #aaa;
+}
+
+.upload-subtext{
+    font-size: 1em;
+    color: #aaa;
+}
+
+.error-text{
+    font-size: 1.2em;
+    color: red;
+}
+
+input[type="file"]{
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.uploaded-image-box{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+
+    .close-button{
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+
+    img{
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+        object-fit: contain;
+    }
+}
+
+.sample-image-container{
+    width: 100%;
+    max-width: 600px;
+
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(160px, 1fr)
+    );
+
+    gap: 1rem;
+}
+
+.image-box{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    border: 2px solid;
+    border-radius: 8px;
+    background-color: #1F1F1F;
+    cursor: pointer;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+        height: auto;
+        width: auto;
+    }
+}
+
+.button-box{
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
