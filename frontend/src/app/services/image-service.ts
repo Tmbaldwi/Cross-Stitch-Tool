@@ -17,7 +17,7 @@ export class ImageService {
     this._originalFile.set(file);
   }
 
-  getScaledDownSizeForImage() : Observable<object>{
+  getScaledDownSizeForImage() : Observable<ImageDimensions>{
     const formData = new FormData();
 
     const file = this._originalFile();
@@ -27,6 +27,13 @@ export class ImageService {
 
     formData.append('image_file', file, file.name);
 
-    return this.http.post<object>(`${this.baseUrl}/api/image/resize-analysis`, formData);
+    return this.http.post<ImageDimensions>(`${this.baseUrl}/api/image/resize-analysis`, formData);
   }
 }
+
+  export interface ImageDimensions {
+    new_height: number;
+    old_height: number;
+    new_width: number;
+    old_width: number
+  }
