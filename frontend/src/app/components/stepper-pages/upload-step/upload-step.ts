@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
 import { ImageService } from '../../../services/image-service';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import {MatIconModule} from '@angular/material/icon';
 

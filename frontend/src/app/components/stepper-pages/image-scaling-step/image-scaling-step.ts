@@ -2,10 +2,13 @@ import { CdkStepper } from '@angular/cdk/stepper';
 import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { ImageService } from '../../../services/image-service';
 import { from, switchMap } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-image-scaling-step',
-  imports: [],
+  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
   templateUrl: './image-scaling-step.html',
   styleUrl: './image-scaling-step.scss',
 })
