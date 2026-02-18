@@ -1,6 +1,7 @@
 import { CdkStepper } from '@angular/cdk/stepper';
 import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
-import { ImageDimensions, ImageService } from '../../../services/image-service';
+import { ImageService } from '../../../services/image-service';
+import { from, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -9,14 +10,11 @@ import { ImageDimensions, ImageService } from '../../../services/image-service';
   styleUrl: './image-scaling-step.scss',
 })
 export class ImageScalingStep {
-
   @ViewChild('canvas', { static: true })
   canvas!: ElementRef<HTMLCanvasElement>;
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
-
-  private settings: ImageDimensions | null = null;
 
   ngOnInit(){
     this.stepper.selectionChange
@@ -27,14 +25,25 @@ export class ImageScalingStep {
       })
   }
 
-  onActivated(){
-    this.service.getScaledDownSizeForImage().subscribe((res) => { console.log(res); this.settings = res });
+  onActivated() {
+    this.service.getScaledDownSizeForImage()
+      .pipe(
+        switchMap(res =>
+          from(
+            this.processPixelArt(
+              this.service.originalFile()!,
+              res.new_width,
+              res.new_height,
+              this.getMedianWeighted
+            )
+          )
+        )
+      )
+      .subscribe(canvas => {
+        this.drawCanvas(canvas);
+      });
   }
 
-  async onClick(){
-    const canvas = await this.processPixelArt(this.service.originalFile()!, this.settings!.new_width, this.settings!.new_height)
-    this.drawCanvas(canvas);
-  }
 
   private drawCanvas(source: HTMLCanvasElement) {
     const target = this.canvas.nativeElement;
@@ -55,7 +64,8 @@ export class ImageScalingStep {
   async processPixelArt(
     file: File,
     targetWidth: number,
-    targetHeight: number
+    targetHeight: number,
+    resizeFunction: ( fullPixel: ImageData ) => ImageData
   ): Promise<HTMLCanvasElement> {
     // Decode the file
     const bitmap = await createImageBitmap(file);
@@ -78,20 +88,165 @@ export class ImageScalingStep {
 
     // Pixel-art downscale (nearest-neighbor sampling)
     const xStep = bitmap.width / targetWidth;
-    const xStepOffset = xStep/2;
     const yStep = bitmap.height / targetHeight;
-    const yStepOffset = yStep/2;
 
     for (let y = 0; y < targetHeight; y++) {
       for (let x = 0; x < targetWidth; x++) {
-        const srcX = Math.floor(x * xStep + xStepOffset);
-        const srcY = Math.floor(y * yStep + yStepOffset);
+        const srcX = Math.floor(x * xStep);
+        const srcY = Math.floor(y * yStep);
 
-        const pixel = srcCtx.getImageData(srcX, srcY, 1, 1);
-        dstCtx.putImageData(pixel, x, y);
+        const pixel = srcCtx.getImageData(srcX, srcY, xStep, yStep);
+        const newPixel = resizeFunction(pixel);
+        dstCtx.putImageData(newPixel, x, y);
       }
     }
 
     return dstCanvas;
+  }
+
+
+  async resizeImage(
+    file: File,
+    targetWidth: number,
+    targetHeight: number
+  ): Promise<HTMLCanvasElement> {
+    const bitmap = await createImageBitmap(file);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled = false; // IMPORTANT for pixel art
+
+    ctx.drawImage(
+      bitmap,
+      0, 0, bitmap.width, bitmap.height,
+      0, 0, targetWidth, targetHeight
+    );
+
+    return canvas;
+  }
+
+  getAverageColor(fullPixel: ImageData){
+    const { width, height, data } = fullPixel;
+
+    let rAverage = 0;
+    let gAverage = 0;
+    let bAverage = 0;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        rAverage += r;
+        gAverage += g;
+        bAverage += b;
+      }
+    }
+
+    let totalPixels = width*height;
+    rAverage = Math.round(rAverage/totalPixels);
+    gAverage = Math.round(gAverage/totalPixels);
+    bAverage = Math.round(bAverage/totalPixels);
+
+    const averagePixel = new ImageData(1,1);
+    averagePixel.data[0] = rAverage;
+    averagePixel.data[1] = gAverage;
+    averagePixel.data[2] = bAverage;
+    averagePixel.data[3] = data[3];
+
+    return averagePixel;
+  }
+
+  getMedianColor(fullPixel: ImageData){
+    const { width, height, data } = fullPixel;
+    const colorCount = new Map<string, number>();
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        // Ignore transparent / blended pixels
+        if (a < 200) continue;
+
+        const key = `${r},${g},${b}`;
+        colorCount.set(key, (colorCount.get(key) ?? 0) + 1);
+      }
+    }
+
+    let bestColor = '0,0,0';
+    let bestCount = -1;
+
+    for (const [color, count] of colorCount) {
+      if (count > bestCount) {
+        bestColor = color;
+        bestCount = count;
+      }
+    }
+
+    const [r, g, b] = bestColor.split(',').map(Number);
+    const averagePixel = new ImageData(1,1);
+    averagePixel.data[0] = r;
+    averagePixel.data[1] = g;
+    averagePixel.data[2] = b;
+    averagePixel.data[3] = 255;
+
+    return averagePixel;
+  }
+
+  getMedianWeighted(fullPixel: ImageData){
+    const { width, height, data } = fullPixel;
+    const colorCount = new Map<string, number>();
+    const centerX = width/2;
+    const centerY = height/2;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        // Add weight based on distance from center
+        const distanceX = Math.abs(x - centerX)
+        const distanceY = Math.abs(y - centerY);
+        const weight = 1 / (1 + (distanceX + distanceY)^2);
+
+        const key = `${r},${g},${b}`;
+        colorCount.set(key, (colorCount.get(key) ?? 0) + weight);
+      }
+    }
+
+    let bestColor = '0,0,0';
+    let bestCount = -1;
+
+    for (const [color, count] of colorCount) {
+      if (count > bestCount) {
+        bestColor = color;
+        bestCount = count;
+      }
+    }
+
+    const [r, g, b] = bestColor.split(',').map(Number);
+    const averagePixel = new ImageData(1,1);
+    averagePixel.data[0] = r;
+    averagePixel.data[1] = g;
+    averagePixel.data[2] = b;
+    averagePixel.data[3] = 255;
+
+    return averagePixel;
   }
 }
