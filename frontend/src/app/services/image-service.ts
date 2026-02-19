@@ -11,10 +11,13 @@ export class ImageService {
   private baseUrl = environment.apiBaseUrl;
 
   private _originalFile = signal<File | null>(null);
+  private _originalFileProcessed = signal<boolean>(false);
   readonly originalFile = this._originalFile.asReadonly();
+  readonly originalFileProcessed = this._originalFileProcessed.asReadonly();
 
   setFile(file: File | null){
     this._originalFile.set(file);
+    this._originalFileProcessed.set(false);
   }
 
   getScaledDownSizeForImage() : Observable<ImageDimensions>{
@@ -26,6 +29,7 @@ export class ImageService {
     };
 
     formData.append('image_file', file, file.name);
+    this._originalFileProcessed.set(true);
 
     return this.http.post<ImageDimensions>(`${this.baseUrl}/api/image/resize-analysis`, formData);
   }

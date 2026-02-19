@@ -11,8 +11,8 @@ router = APIRouter(
 )
 
 class ResizeAnalysisResponse(BaseModel):
-    original_width: int
-    original_height: int
+    old_width: int
+    old_height: int
     new_width: int
     new_height: int
 
@@ -28,7 +28,7 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
     # Image load validation
     try:
         image = Image.open(io.BytesIO(image_bytes))
-        original_width, original_height = image.size
+        old_width, old_height = image.size
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
@@ -44,8 +44,8 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
         ) from ex
 
     return ResizeAnalysisResponse(
-        original_width=original_width,
-        original_height=original_height,
+        old_width=old_width,
+        old_height=old_height,
         new_width=new_width,
         new_height=new_height
     )

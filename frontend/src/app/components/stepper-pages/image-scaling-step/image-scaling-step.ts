@@ -1,7 +1,7 @@
 import { CdkStepper } from '@angular/cdk/stepper';
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
-import { ImageService } from '../../../services/image-service';
-import { from, switchMap } from 'rxjs';
+import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { ImageDimensions, ImageService } from '../../../services/image-service';
+import { firstValueFrom, from, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,33 +18,42 @@ export class ImageScalingStep {
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
+  public imageAnalysis : ImageDimensions | undefined = undefined;
+  public isLoading = signal(false);
 
   ngOnInit(){
     this.stepper.selectionChange
       .subscribe(e => {
-        if(e.selectedIndex === 1){
+        if(e.selectedIndex === 1 && this.service.originalFileProcessed() == false){
           this.onActivated();
         }
       })
   }
 
-  onActivated() {
-    this.service.getScaledDownSizeForImage()
-      .pipe(
-        switchMap(res =>
-          from(
-            this.processPixelArt(
-              this.service.originalFile()!,
-              res.new_width,
-              res.new_height,
-              this.getMedianWeighted
-            )
-          )
-        )
-      )
-      .subscribe(canvas => {
-        this.drawCanvas(canvas);
-      });
+  nextButtonDisabled(){
+    return !this.service.originalFileProcessed();
+  }
+
+  async onActivated() {
+    this.isLoading.set(true);
+
+    try {
+      this.imageAnalysis = await firstValueFrom(
+        this.service.getScaledDownSizeForImage()
+      );
+
+      const canvas = await this.processPixelArt(
+        this.service.originalFile()!,
+        this.imageAnalysis.new_width,
+        this.imageAnalysis.new_height,
+        this.getMedianWeighted
+      );
+
+      this.drawCanvas(canvas);
+    }
+    finally {
+      this.isLoading.set(false);
+    }
   }
 
 
