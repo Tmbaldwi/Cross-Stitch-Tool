@@ -12,9 +12,16 @@
             @if(isLoading()){
                 <p>Loading...</p>
             }
-            @else{
+            @else if (errorMessage()) {
+                <span style="color: red">{{errorMessage()}}</span>
+            }
+            @else if(imageAnalysis?.new_height == imageAnalysis?.old_height && imageAnalysis?.new_width == imageAnalysis?.old_width){
                 <span>
-                    The image has been resized from size '<b>{{imageAnalysis?.old_width}}x{{imageAnalysis?.old_height}}</b>'' to '<b>{{imageAnalysis?.new_width}}x{{imageAnalysis?.new_height}}</b>'
+                    The image kept its original size '<b>{{imageAnalysis?.old_width}}x{{imageAnalysis?.old_height}}</b>'
+                </span>
+            } @else {
+                <span>
+                    The image has been resized from size '<b>{{imageAnalysis?.old_width}}x{{imageAnalysis?.old_height}}</b>' to '<b>{{imageAnalysis?.new_width}}x{{imageAnalysis?.new_height}}</b>'
                 </span>
             }
         </div>

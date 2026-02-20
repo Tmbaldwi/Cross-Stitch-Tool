@@ -1,10 +1,11 @@
 import { CdkStepper } from '@angular/cdk/stepper';
-import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { ImageDimensions, ImageService } from '../../../services/image-service';
-import { firstValueFrom, from, switchMap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -20,6 +21,7 @@ export class ImageScalingStep {
   private service = inject(ImageService);
   public imageAnalysis : ImageDimensions | undefined = undefined;
   public isLoading = signal(false);
+  public errorMessage = signal<string | null>(null);
 
   ngOnInit(){
     this.stepper.selectionChange
@@ -36,6 +38,7 @@ export class ImageScalingStep {
 
   async onActivated() {
     this.isLoading.set(true);
+    this.errorMessage.set(null);
 
     try {
       this.imageAnalysis = await firstValueFrom(
@@ -44,12 +47,25 @@ export class ImageScalingStep {
 
       const canvas = await this.processPixelArt(
         this.service.originalFile()!,
-        this.imageAnalysis.new_width,
-        this.imageAnalysis.new_height,
+        this.imageAnalysis,
         this.getMedianWeighted
       );
 
       this.drawCanvas(canvas);
+    }
+    catch (error: unknown){
+      if (error instanceof HttpErrorResponse) {
+        this.errorMessage.set(
+          error.error?.detail ||
+          error.message || 
+          'Server error occurred'
+        );
+      } else if(error instanceof Error){
+        this.errorMessage.set("Error occurred: " + error.message);
+      } else{
+        this.errorMessage.set("An unknown error occurred. Please try again.");
+      }
+      
     }
     finally {
       this.isLoading.set(false);
@@ -75,19 +91,37 @@ export class ImageScalingStep {
 
   async processPixelArt(
     file: File,
-    targetWidth: number,
-    targetHeight: number,
+    imageAnalysis: ImageDimensions,
     resizeFunction: ( fullPixel: ImageData ) => ImageData
   ): Promise<HTMLCanvasElement> {
+
     // Decode the file
     const bitmap = await createImageBitmap(file);
+
+    if(imageAnalysis.new_width === imageAnalysis.old_width && imageAnalysis.new_height === imageAnalysis.old_height){
+      console.log("Image is the same")
+
+      const dstCanvas = document.createElement('canvas');
+      dstCanvas.width = imageAnalysis.old_width;
+      dstCanvas.height = imageAnalysis.old_height;
+
+      const dstCtx = dstCanvas.getContext('2d')!;
+      dstCtx.drawImage(bitmap, 0,0);
+      
+      return dstCanvas;
+    }
+
+    let targetWidth: number = imageAnalysis.new_width;
+    let targetHeight: number = imageAnalysis.new_height;
 
     // Draw original image to a source canvas
     const srcCanvas = document.createElement('canvas');
     srcCanvas.width = bitmap.width;
     srcCanvas.height = bitmap.height;
 
-    const srcCtx = srcCanvas.getContext('2d')!;
+    const srcCtx = srcCanvas.getContext('2d', {
+      willReadFrequently: true
+    })!;
     srcCtx.drawImage(bitmap, 0, 0);
 
     // Create target canvas (downscaled pixel grid)
@@ -129,7 +163,7 @@ export class ImageScalingStep {
     canvas.height = targetHeight;
 
     const ctx = canvas.getContext('2d')!;
-    ctx.imageSmoothingEnabled = false; // IMPORTANT for pixel art
+    ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
       bitmap,

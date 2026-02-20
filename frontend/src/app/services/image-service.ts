@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from './../../../environments/environment';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -21,17 +21,27 @@ export class ImageService {
   }
 
   getScaledDownSizeForImage() : Observable<ImageDimensions>{
-    const formData = new FormData();
-
     const file = this._originalFile();
+
     if(!file){
-      throw new Error('No file set');
+      console.error('No file was set');
+      return throwError(() => new Error('No file set'));
     };
 
+    const formData = new FormData();
     formData.append('image_file', file, file.name);
+
     this._originalFileProcessed.set(true);
 
-    return this.http.post<ImageDimensions>(`${this.baseUrl}/api/image/resize-analysis`, formData);
+    return this.http.post<ImageDimensions>(
+      `${this.baseUrl}/api/image/resize-analysis`, formData
+    ).pipe(
+      catchError(err => {
+        console.error('Resize analysis failed:', err);
+
+        return throwError(() => err as Error);
+      })
+    )
   }
 }
 
