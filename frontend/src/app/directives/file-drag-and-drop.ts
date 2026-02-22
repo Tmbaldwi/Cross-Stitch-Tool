@@ -33,8 +33,5 @@ export class FileDragAndDrop {
 
     let files: FileList = event.dataTransfer.files;
     this.fileChangesEmitter.emit(files);
-
-    // visual
-    this.borderColor = 'grey';
   }
 }
