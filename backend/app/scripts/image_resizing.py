@@ -2,12 +2,16 @@ from app.scripts.utility.image_processing_utility import process_pixel_art
 import cv2
 import numpy as np
 
-def return_compressed_image_size(npImageArray):
-    image_bgr = cv2.imdecode(npImageArray, cv2.IMREAD_COLOR)
-    image_rgb = cv2.cvtColor(image_bgr,cv2.COLOR_BGR2RGB)
+def return_compressed_image(npImageArray : np.ndarray):
+    image_bgr : np.ndarray = cv2.imdecode(npImageArray, cv2.IMREAD_COLOR)
+    image_rgb : np.ndarray = cv2.cvtColor(image_bgr,cv2.COLOR_BGR2RGB)
+
+    # get old image dimensions
+    oldW, oldH, _ = image_rgb.shape
     
     # get new image dimensions
-    newW, newH = get_pixel_size_fourier_transform_method(image_rgb)
+    resized_image_rgb : np.ndarray = image_rgb
+    newW, newH = get_pixel_size_fourier_transform_method(resized_image_rgb)
 
     # try getting new image dimensions until the algorithm agrees
     while newW < oldW and newH < oldH:
@@ -16,7 +20,7 @@ def return_compressed_image_size(npImageArray):
         oldH = newH
         newW, newH = get_pixel_size_fourier_transform_method(resized_image_rgb)
 
-    return newW, newH
+    return resized_image_rgb
 
 def get_pixel_size_fourier_transform_method(color_image):
     # Convert image to grayscale
@@ -49,8 +53,6 @@ def get_pixel_size_fourier_transform_method(color_image):
     y_max_index = np.argmax(y_detrended) + 1
 
     print("-------------------------------------")
-    print("width std dev", np.std(x_detrended))
-    print("height std dev", np.std(y_detrended))
 
     print("proposed", x_max_index, y_max_index)
 
@@ -91,7 +93,7 @@ def get_pixel_size_fourier_transform_method(color_image):
         print("same conclusion", x_max_index, y_max_index)
         return x_max_index, y_max_index
     else:
-        # if none of our olive branches are taken, then we don't bother resizing
+        # if everything else fails, then we don't bother resizing
         print("rejected")
         return oldW, oldH
 

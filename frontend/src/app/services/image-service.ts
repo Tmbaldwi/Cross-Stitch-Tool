@@ -20,7 +20,7 @@ export class ImageService {
     this._originalFileProcessed.set(false);
   }
 
-  getScaledDownSizeForImage() : Observable<ImageDimensions>{
+  getRescaledImage() : Observable<ImageAnalysis>{
     const file = this._originalFile();
 
     if(!file){
@@ -33,8 +33,8 @@ export class ImageService {
 
     this._originalFileProcessed.set(true);
 
-    return this.http.post<ImageDimensions>(
-      `${this.baseUrl}/api/image/resize-analysis`, formData
+    return this.http.post<ImageAnalysis>(
+      `${this.baseUrl}/api/image/resize-image`, formData
     ).pipe(
       catchError(err => {
         console.error('Resize analysis failed:', err);
@@ -45,9 +45,10 @@ export class ImageService {
   }
 }
 
-  export interface ImageDimensions {
+  export interface ImageAnalysis {
     new_height: number;
     old_height: number;
     new_width: number;
-    old_width: number
+    old_width: number;
+    image_base64: string;
   }

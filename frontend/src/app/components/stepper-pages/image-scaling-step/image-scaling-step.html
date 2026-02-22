@@ -1,11 +1,12 @@
 <section class="container">
     <div class="contents">
         <div class="image-box">
-            <canvas #canvas></canvas>
             @if(isLoading()){
                 <div class="loading-overlay">
                     <p>Loading...</p>
                 </div>
+            } @else {
+                <img [src]="'data:image/png;base64,' + imageAnalysis?.image_base64" />
             }
         </div>
         <div class="text-box">

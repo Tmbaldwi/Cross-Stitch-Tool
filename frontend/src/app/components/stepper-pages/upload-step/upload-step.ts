@@ -72,7 +72,6 @@ export class UploadStep {
     this.errorMessage.set(null);
     this.previewUrl = URL.createObjectURL(this.file()!);
     this.selectImage(0);
-
   }
 
   clearFile() {
