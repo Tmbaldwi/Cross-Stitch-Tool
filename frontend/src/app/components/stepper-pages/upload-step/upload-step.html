@@ -54,7 +54,7 @@
             <button 
                 matButton="filled"
                 matStepperNext
-                [disabled]="form().invalid"
+                [disabled]="isNextButtonDisabled()"
                 class="light-scheme-button"
             >
                 Scale Image &rarr;

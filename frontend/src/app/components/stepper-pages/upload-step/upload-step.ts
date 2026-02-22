@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
 import { ImageService } from '../../../services/image-service';
@@ -18,7 +18,7 @@ const unuploadedImageBorderStyle : string = '4px dashed';
   styleUrl: './upload-step.scss',
 })
 export class UploadStep {
-  readonly form = input.required<FormGroup>();
+  readonly imageHistoryForm = input.required<FormGroup>();
 
   sampleImages = [
     { id: 1, imageUrl: 'https://picsum.photos/id/237/500/300' },
@@ -45,6 +45,10 @@ export class UploadStep {
 
   private service = inject(ImageService);
 
+  isNextButtonDisabled(){
+    return this.imageHistoryForm().get('originalImage')?.invalid;
+  }
+
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0 || files[0] == null) {
       this.clearFile();
@@ -54,15 +58,15 @@ export class UploadStep {
     // Clear previous and set form for validation
     this.clearFile();
     this.file.set(files[0]);
-    this.form().patchValue({ file: this.file() });
+    this.imageHistoryForm().get('originalImage')?.setValue(this.file());
 
     // Form validation
-    const fileControl = this.form().get('file');
+    const fileControl = this.imageHistoryForm().get('originalImage');
     fileControl?.markAsTouched();
     fileControl?.updateValueAndValidity();
 
     if(fileControl?.invalid){
-      this.form().patchValue({ file: null })
+      this.imageHistoryForm().get('originalImage')?.setValue(null);
       this.clearFile();
       this.errorMessage.set("File type must be png, jpg, or jpeg")
       return;
@@ -84,7 +88,8 @@ export class UploadStep {
 
     // TODO this will need to be changed for sample images
     this.service.setFile(null);
-    this.form().patchValue({ file: null });
+    this.imageHistoryForm().get('originalImage')?.setValue(null);
+    this.imageHistoryForm().get('scaledImageBase64')?.setValue(null);
 
     if(this.selectedFileIdx() === 0){
       this.selectedFileIdx.set(-1);

@@ -6,7 +6,7 @@
                     <p>Loading...</p>
                 </div>
             } @else {
-                <img [src]="'data:image/png;base64,' + imageAnalysis?.image_base64" />
+                <img [src]="'data:image/png;base64,' + imageRescaleResponse?.image_base64" />
             }
         </div>
         <div class="text-box">
@@ -16,13 +16,13 @@
             @else if (errorMessage()) {
                 <span style="color: red">{{errorMessage()}}</span>
             }
-            @else if(imageAnalysis?.new_height == imageAnalysis?.old_height && imageAnalysis?.new_width == imageAnalysis?.old_width){
+            @else if(imageRescaleResponse?.new_height == imageRescaleResponse?.old_height && imageRescaleResponse?.new_width == imageRescaleResponse?.old_width){
                 <span>
-                    The image kept its original size '<b>{{imageAnalysis?.old_width}}x{{imageAnalysis?.old_height}}</b>'
+                    The image kept its original size '<b>{{imageRescaleResponse?.old_width}}x{{imageRescaleResponse?.old_height}}</b>'
                 </span>
             } @else {
                 <span>
-                    The image has been resized from size '<b>{{imageAnalysis?.old_width}}x{{imageAnalysis?.old_height}}</b>' to '<b>{{imageAnalysis?.new_width}}x{{imageAnalysis?.new_height}}</b>'
+                    The image has been resized from size '<b>{{imageRescaleResponse?.old_width}}x{{imageRescaleResponse?.old_height}}</b>' to '<b>{{imageRescaleResponse?.new_width}}x{{imageRescaleResponse?.new_height}}</b>'
                 </span>
             }
         </div>
@@ -40,7 +40,7 @@
                 <button 
                     matButton="filled"
                     matStepperNext
-                    [disabled]="nextButtonDisabled()"
+                    [disabled]="isNextButtonDisabled()"
                     class="light-scheme-button"
                 >
                     Select Thread Colors &rarr;

@@ -1,11 +1,12 @@
-import { CdkStepper } from '@angular/cdk/stepper';
-import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
+import { Component, EventEmitter, inject, input, signal } from '@angular/core';
 import { ImageAnalysis, ImageService } from '../../../services/image-service';
 import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpErrorResponse } from '@angular/common/http';
+import { FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -14,36 +15,47 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrl: './image-scaling-step.scss',
 })
 export class ImageScalingStep {
-  @ViewChild('canvas', { static: true })
-  canvas!: ElementRef<HTMLCanvasElement>;
+  readonly imageHistoryForm = input.required<FormGroup>();
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
-  public imageAnalysis : ImageAnalysis | undefined = undefined;
+  public imageRescaleResponse : ImageAnalysis | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
 
   ngOnInit(){
     this.stepper.selectionChange
       .subscribe(e => {
-        if(e.selectedIndex === 1 && this.service.originalFileProcessed() == false){
-          this.onActivated();
+        if(this.imageNeedsRescaling(e)){
+          this.onStepBegin();
         }
       })
   }
 
-  nextButtonDisabled(){
-    return !this.service.originalFileProcessed();
+  imageNeedsRescaling(event: StepperSelectionEvent){
+    const scaledImageControl = this.imageHistoryForm().get('scaledImageBase64');
+    return event.selectedIndex === 1 && scaledImageControl?.value === null
   }
 
-  async onActivated() {
+  isNextButtonDisabled(){
+    return this.imageHistoryForm().get('scaledImageBase64')?.invalid;
+  }
+
+  onStepBegin() {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
+    this.getRescaledImage();
+  }
+
+  async getRescaledImage(){
     try {
-      this.imageAnalysis = await firstValueFrom(
+      this.imageRescaleResponse = await firstValueFrom(
         this.service.getRescaledImage()
       );
+
+    this.imageHistoryForm().get('scaledImageBase64')?.setValue(this.imageRescaleResponse.image_base64);
+
     }
     catch (error: unknown){
       if (error instanceof HttpErrorResponse) {

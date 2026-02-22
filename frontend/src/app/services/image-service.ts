@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from './../../../environments/environment';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -11,13 +11,10 @@ export class ImageService {
   private baseUrl = environment.apiBaseUrl;
 
   private _originalFile = signal<File | null>(null);
-  private _originalFileProcessed = signal<boolean>(false);
   readonly originalFile = this._originalFile.asReadonly();
-  readonly originalFileProcessed = this._originalFileProcessed.asReadonly();
 
   setFile(file: File | null){
     this._originalFile.set(file);
-    this._originalFileProcessed.set(false);
   }
 
   getRescaledImage() : Observable<ImageAnalysis>{
@@ -31,8 +28,6 @@ export class ImageService {
     const formData = new FormData();
     formData.append('image_file', file, file.name);
 
-    this._originalFileProcessed.set(true);
-
     return this.http.post<ImageAnalysis>(
       `${this.baseUrl}/api/image/resize-image`, formData
     ).pipe(
@@ -43,6 +38,7 @@ export class ImageService {
       })
     )
   }
+
 }
 
   export interface ImageAnalysis {
