@@ -1,12 +1,12 @@
 import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
-import { Component, EventEmitter, inject, input, signal } from '@angular/core';
-import { ImageAnalysis, ImageService } from '../../../services/image-service';
-import { firstValueFrom } from 'rxjs';
+import { Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
+import { ImageService } from '../../../services/image-service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
+import { ImageAnalysis } from '../../../services/models/image-analysis.model';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -15,11 +15,14 @@ import { FormGroup } from '@angular/forms';
   styleUrl: './image-scaling-step.scss',
 })
 export class ImageScalingStep {
+  @ViewChild('canvas', { static: true })
+  canvasRef!: ElementRef<HTMLCanvasElement>;
+
   readonly imageHistoryForm = input.required<FormGroup>();
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
-  public imageRescaleResponse : ImageAnalysis | undefined = undefined;
+  public imageRescale : ImageAnalysis | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
 
@@ -33,12 +36,12 @@ export class ImageScalingStep {
   }
 
   imageNeedsRescaling(event: StepperSelectionEvent){
-    const scaledImageControl = this.imageHistoryForm().get('scaledImageBase64');
+    const scaledImageControl = this.imageHistoryForm().get('scaledImageBitmap');
     return event.selectedIndex === 1 && scaledImageControl?.value === null
   }
 
   isNextButtonDisabled(){
-    return this.imageHistoryForm().get('scaledImageBase64')?.invalid;
+    return this.imageHistoryForm().get('scaledImageBitmap')?.invalid;
   }
 
   onStepBegin() {
@@ -48,31 +51,48 @@ export class ImageScalingStep {
     this.getRescaledImage();
   }
 
-  async getRescaledImage(){
-    try {
-      this.imageRescaleResponse = await firstValueFrom(
-        this.service.getRescaledImage()
-      );
+  getRescaledImage() {
+    this.service.getRescaledImage().subscribe({
+      next: (res) => {
+        this.imageRescale = res;
 
-    this.imageHistoryForm().get('scaledImageBase64')?.setValue(this.imageRescaleResponse.image_base64);
+        this.imageHistoryForm().get('scaledImageBitmap')?.setValue(res.scaledImageBitmap);
 
-    }
-    catch (error: unknown){
-      if (error instanceof HttpErrorResponse) {
-        this.errorMessage.set(
-          error.error?.detail ||
-          error.message || 
-          'Server error occurred'
-        );
-      } else if(error instanceof Error){
-        this.errorMessage.set("Error occurred: " + error.message);
-      } else{
-        this.errorMessage.set("An unknown error occurred. Please try again.");
+        this.displayBitmap(res.scaledImageBitmap);
+      },
+
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse) {
+          this.errorMessage.set(
+            error.error?.detail ||
+            error.message ||
+            'Server error occurred'
+          );
+        } else if (error instanceof Error) {
+          this.errorMessage.set('Error occurred: ' + error.message);
+        } else {
+          this.errorMessage.set(
+            'An unknown error occurred. Please try again.'
+          );
+        }
+
+        this.isLoading.set(false);
+      },
+
+      complete: () => {
+        this.isLoading.set(false);
       }
-      
-    }
-    finally {
-      this.isLoading.set(false);
-    }
+    });
+  }
+
+  displayBitmap(bitmap: ImageBitmap) {
+    const canvas = this.canvasRef.nativeElement;
+    const ctx = canvas.getContext('2d')!;
+
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0);
   }
 }

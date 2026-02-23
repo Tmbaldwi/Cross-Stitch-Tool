@@ -20,7 +20,7 @@ const unuploadedImageBorderStyle : string = '4px dashed';
 export class UploadStep {
   readonly imageHistoryForm = input.required<FormGroup>();
 
-  sampleImages = [
+  sampleImages = [ // TODO get sample images from backend
     { id: 1, imageUrl: 'https://picsum.photos/id/237/500/300' },
     { id: 2, imageUrl: 'https://picsum.photos/600/300' },
     { id: 3, imageUrl: 'https://picsum.photos/500/400' },
@@ -89,7 +89,7 @@ export class UploadStep {
     // TODO this will need to be changed for sample images
     this.service.setFile(null);
     this.imageHistoryForm().get('originalImage')?.setValue(null);
-    this.imageHistoryForm().get('scaledImageBase64')?.setValue(null);
+    this.imageHistoryForm().get('scaledImageBitmap')?.setValue(null);
 
     if(this.selectedFileIdx() === 0){
       this.selectedFileIdx.set(-1);

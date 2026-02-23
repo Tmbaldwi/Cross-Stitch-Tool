@@ -4,10 +4,11 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { UploadStep } from '../components/stepper-pages/upload-step/upload-step';
 import { ImageScalingStep } from '../components/stepper-pages/image-scaling-step/image-scaling-step';
 import { allowedFileTypes } from '../validators/file-type.validator';
+import { ThreadSelectionStep } from "../components/stepper-pages/thread-selection-step/thread-selection-step";
 
 @Component({
   selector: 'app-cross-stitch-tool-flow-manager',
-  imports: [UploadStep, ImageScalingStep, MatStepperModule],
+  imports: [UploadStep, ImageScalingStep, MatStepperModule, ThreadSelectionStep],
   templateUrl: './cross-stitch-tool-flow-manager.html',
   styleUrl: './cross-stitch-tool-flow-manager.scss',
 })
@@ -22,7 +23,7 @@ export class CrossStitchToolFlowManager {
         allowedFileTypes(['png', 'jpeg', 'jpg'])
       ]
     ),
-    scaledImageBase64 : new FormControl<string | null>(
+    scaledImageBitmap : new FormControl<ImageBitmap | null>(
       null, 
       [
         Validators.required, 
@@ -35,6 +36,6 @@ export class CrossStitchToolFlowManager {
   }
 
   get scalingStepFileControl(): FormControl<string | null> {
-    return this.imageFileHistoryForm.get('scaledImageBase64') as FormControl<string | null>;
+    return this.imageFileHistoryForm.get('scaledImageBitmap') as FormControl<string | null>;
   }
 }

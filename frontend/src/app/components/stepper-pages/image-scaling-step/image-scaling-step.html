@@ -1,12 +1,11 @@
 <section class="container">
     <div class="contents">
         <div class="image-box">
+            <canvas #canvas></canvas>
             @if(isLoading()){
                 <div class="loading-overlay">
                     <p>Loading...</p>
                 </div>
-            } @else {
-                <img [src]="'data:image/png;base64,' + imageRescaleResponse?.image_base64" />
             }
         </div>
         <div class="text-box">
@@ -16,13 +15,13 @@
             @else if (errorMessage()) {
                 <span style="color: red">{{errorMessage()}}</span>
             }
-            @else if(imageRescaleResponse?.new_height == imageRescaleResponse?.old_height && imageRescaleResponse?.new_width == imageRescaleResponse?.old_width){
+            @else if(imageRescale?.scaledImageBitmap?.height == imageRescale?.old_height && imageRescale?.scaledImageBitmap?.width == imageRescale?.old_width){
                 <span>
-                    The image kept its original size '<b>{{imageRescaleResponse?.old_width}}x{{imageRescaleResponse?.old_height}}</b>'
+                    The image kept its original size '<b>{{imageRescale?.old_width}}x{{imageRescale?.old_height}}</b>'
                 </span>
             } @else {
                 <span>
-                    The image has been resized from size '<b>{{imageRescaleResponse?.old_width}}x{{imageRescaleResponse?.old_height}}</b>' to '<b>{{imageRescaleResponse?.new_width}}x{{imageRescaleResponse?.new_height}}</b>'
+                    The image has been resized from size '<b>{{imageRescale?.old_width}}x{{imageRescale?.old_height}}</b>' to '<b>{{imageRescale?.scaledImageBitmap?.width}}x{{imageRescale?.scaledImageBitmap?.height}}</b>'
                 </span>
             }
         </div>

@@ -15,7 +15,9 @@
     </mat-step>
     <mat-step>
       <ng-template matStepLabel>Select Thread Colors</ng-template>
-      Step 3 page
+      <app-thread-selection-step
+        [imageHistoryForm]="imageFileHistoryForm"
+      />
     </mat-step>
   </mat-stepper>
 </div>

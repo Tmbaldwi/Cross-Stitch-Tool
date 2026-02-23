@@ -1,23 +1,14 @@
-import base64
 import io
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 import numpy as np
 from PIL import Image
-from pydantic import BaseModel
 from app.scripts.image_resizing import return_compressed_image
+from app.scripts.thread_color_screen_scrape import get_thread_list
 
 router = APIRouter(
     prefix="/image",
     tags=["Image"]
 )
-
-class ResizeAnalysisResponse(BaseModel):
-    old_width: int
-    old_height: int
-    new_width: int
-    new_height: int
-    image_base64: str 
 
 @router.post("/resize-image", summary= "Analyzes the provided image and returns a (potentially) compressed image along with dimensional changes.")
 async def image_resize_analysis(image_file: UploadFile = File(...)):
@@ -39,23 +30,27 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
 
     try:
         compressed_image = return_compressed_image(np_image)
-        new_height, new_width, _ = compressed_image.shape
 
         with io.BytesIO() as buf:
             Image.fromarray(compressed_image).save(buf, format="PNG")
-            im_bytes = buf.getvalue()
-            encoded_image = base64.b64encode(im_bytes).decode("utf-8")
-
+            compressed_image_bytes = buf.getvalue()
     except Exception as ex:
         raise HTTPException(
             status_code=500, 
             detail="Something went wrong during image compression: " + str(ex)
         ) from ex
     
-    return ResizeAnalysisResponse(
-        old_width=old_width,
-        old_height=old_height,
-        new_width=new_width,
-        new_height=new_height,
-        image_base64=encoded_image
+    headers = {
+        "old-width": str(old_width),
+        "old-height": str(old_height)
+    }
+    
+    return Response(
+        content=compressed_image_bytes,
+        media_type="image/png",
+        headers=headers
     )
+
+@router.get("/dmc-color-palette", summary="Returns the DMC color palette")
+async def get_dmc_thread_color_palette():
+    return get_thread_list()

@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from './../../../environments/environment';
-import { catchError, Observable, tap, throwError } from 'rxjs';
+import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
+import { ImageAnalysis } from './models/image-analysis.model';
+import { ThreadColor } from './models/thread-color.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,23 +30,44 @@ export class ImageService {
     const formData = new FormData();
     formData.append('image_file', file, file.name);
 
-    return this.http.post<ImageAnalysis>(
-      `${this.baseUrl}/api/image/resize-image`, formData
+    return this.http.post(
+      `${this.baseUrl}/api/image/resize-image`, 
+      formData,
+      {
+        responseType: 'blob',
+        observe: 'response'
+      }
+      ).pipe(
+        switchMap(response => {
+          const blob = response.body as Blob;
+
+          const oldWidth = Number(response.headers.get('old-width'));
+          const oldHeight = Number(response.headers.get('old-height'));
+
+          return from(createImageBitmap(blob)).pipe(
+            map(bitmap => ({
+              old_width: oldWidth,
+              old_height: oldHeight,
+              scaledImageBitmap: bitmap
+            }))
+          );
+        }),
+        catchError(err => {
+          console.error('Resize analysis failed:', err);
+          return throwError(() => err as Error);
+        })
+    )
+  }
+
+  getDmcColorPalette() : Observable<ThreadColor[]>{
+    return this.http.get<ThreadColor[]>(
+      `${this.baseUrl}/api/image/dmc-color-palette`
     ).pipe(
       catchError(err => {
-        console.error('Resize analysis failed:', err);
-
-        return throwError(() => err as Error);
+        console.error('Dmc Color Palette get failed:', err)
+        return throwError(() => err as Error)
       })
     )
   }
 
 }
-
-  export interface ImageAnalysis {
-    new_height: number;
-    old_height: number;
-    new_width: number;
-    old_width: number;
-    image_base64: string;
-  }
