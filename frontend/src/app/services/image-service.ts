@@ -58,16 +58,4 @@ export class ImageService {
         })
     )
   }
-
-  getDmcColorPalette() : Observable<ThreadColor[]>{
-    return this.http.get<ThreadColor[]>(
-      `${this.baseUrl}/api/image/dmc-color-palette`
-    ).pipe(
-      catchError(err => {
-        console.error('Dmc Color Palette get failed:', err)
-        return throwError(() => err as Error)
-      })
-    )
-  }
-
 }

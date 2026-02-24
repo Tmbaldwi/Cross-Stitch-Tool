@@ -17,14 +17,9 @@ export class ThreadSelectionStep {
   ngOnInit(){
     this.stepper.selectionChange.subscribe((event) =>{
       if(event.selectedIndex === 2){
-        this.getDmcThreadPalette()
+        // TODO upload image and return palette/closest DMC colors
       }
     })
   }
 
-  async getDmcThreadPalette(){ // TODO implement
-    this.service.getDmcColorPalette().subscribe(res => {
-      console.log(res);
-    })
-  }
 }

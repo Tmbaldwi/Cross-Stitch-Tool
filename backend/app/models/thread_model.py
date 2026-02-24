@@ -3,14 +3,14 @@ from typing import Tuple
 
 @dataclass
 class Thread:
-    id: str
+    dmc_id: str
     name: str
     rgb: Tuple[int, int, int]
     hex_value: str
 
 
-    def __init__(self, id: str, name: str, red: int, green: int, blue: int, hex: str):
-        self.id = id
+    def __init__(self, dmc_id: str, name: str, rgb: list[str], hex: str):
+        self.dmc_id = dmc_id
         self.name = name
-        self.rgb = (int(red), int(green), int(blue))
+        self.rgb = [int(color) for color in rgb]
         self.hex_value = hex

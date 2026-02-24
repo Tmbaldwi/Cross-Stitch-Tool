@@ -3,7 +3,7 @@ from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 import numpy as np
 from PIL import Image
 from app.scripts.image_resizing import return_compressed_image
-from app.scripts.thread_color_screen_scrape import get_thread_list
+from app.scripts.thread_color_screen_scrape import get_thread_list, get_thread_list_lab
 
 router = APIRouter(
     prefix="/image",
@@ -50,7 +50,3 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
         media_type="image/png",
         headers=headers
     )
-
-@router.get("/dmc-color-palette", summary="Returns the DMC color palette")
-async def get_dmc_thread_color_palette():
-    return get_thread_list()
