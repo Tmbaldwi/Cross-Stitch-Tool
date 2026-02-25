@@ -52,7 +52,9 @@ export class ImageScalingStep {
   }
 
   getRescaledImage() {
-    this.service.getRescaledImage().subscribe({
+    const originalImage: File = this.imageHistoryForm().get('originalImage')?.value;
+
+    this.service.getRescaledImage(originalImage).subscribe({
       next: (res) => {
         this.imageRescale = res;
 

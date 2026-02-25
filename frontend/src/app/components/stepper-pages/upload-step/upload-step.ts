@@ -4,7 +4,7 @@ import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
 import { ImageService } from '../../../services/image-service';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
-import {MatIconModule} from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
@@ -42,8 +42,6 @@ export class UploadStep {
       ? `${borderStyle} ${selectedBorderColor}`
       : `${borderStyle} ${unselectedBorderColor}`;
   });
-
-  private service = inject(ImageService);
 
   isNextButtonDisabled(){
     return this.imageHistoryForm().get('originalImage')?.invalid;
@@ -87,7 +85,6 @@ export class UploadStep {
     this.previewUrl = null;
 
     // TODO this will need to be changed for sample images
-    this.service.setFile(null);
     this.imageHistoryForm().get('originalImage')?.setValue(null);
     this.imageHistoryForm().get('scaledImageBitmap')?.setValue(null);
 
@@ -107,7 +104,7 @@ export class UploadStep {
 
     if(idx === 0 && this.file()){
       // TODO adjust for sample images
-      this.service.setFile(this.file());
+      this.imageHistoryForm().get('originalImage')?.setValue(this.file());
     }
 
     if(idx > 0){
