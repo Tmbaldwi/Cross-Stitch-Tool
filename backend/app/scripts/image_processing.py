@@ -1,7 +1,9 @@
-def process_image_for_color_palette(pixel_array):
+from app.models.palette_color_model import Palette_Color
+
+def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
     height, width, _ = pixel_array.shape
-    unique_colors = []
-    colors_seen = set()
+    print(pixel_array.shape)
+    unique_colors: dict[str, Palette_Color] = {}
 
     # create list of unique colors from the image
     for col in range(width):
@@ -9,9 +11,10 @@ def process_image_for_color_palette(pixel_array):
             pixel = pixel_array[row,col]
             color_hex = rgb_to_hex(pixel)
             
-            if color_hex not in colors_seen:
-                unique_colors.append(color_hex)
-                colors_seen.add(color_hex)
+            if color_hex not in unique_colors.keys():
+                unique_colors[color_hex] = Palette_Color(rgb=pixel, hex=color_hex, occurences=1)
+            else:
+                unique_colors[color_hex].occurences += 1
     
     print(f"Unique colors found: {len(unique_colors)}")
 

@@ -77,4 +77,4 @@ async def parse_palette_and_map_closest_colors(image_file: UploadFile = File(...
             detail="Something went wrong during image compression: " + str(ex)
         ) from ex
     
-    return palette
+    return
