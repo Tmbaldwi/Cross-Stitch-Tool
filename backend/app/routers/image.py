@@ -3,7 +3,7 @@ from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 import numpy as np
 from PIL import Image
 from app.scripts.image_resizing import return_compressed_image
-from app.scripts.image_processing import process_image_for_color_palette
+from app.scripts.image_processing import get_closest_n_thread_colors_for_image
 
 router = APIRouter(
     prefix="/image",
@@ -70,7 +70,7 @@ async def parse_palette_and_map_closest_colors(image_file: UploadFile = File(...
     pixel_array = np.array(image)
 
     try:
-        palette = process_image_for_color_palette(pixel_array)
+        palette = get_closest_n_thread_colors_for_image(pixel_array, 5)
     except Exception as ex:
         raise HTTPException(
             status_code=500, 

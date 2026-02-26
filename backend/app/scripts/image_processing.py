@@ -1,4 +1,24 @@
+import numpy as np
+
 from app.models.palette_color_model import Palette_Color
+
+def get_closest_n_thread_colors_for_image(image_pixel_array, n: int):
+    # Get color palette and occurrences
+    palette = process_image_for_color_palette(image_pixel_array)
+
+    # Group nearby colors
+    grouped_palette = group_nearby_palette_colors_strict(palette=palette, threshold=3.5)
+
+    counts : dict[int, int] = {}
+    for color_group in grouped_palette:
+        group_size = len(color_group)
+        if group_size not in counts:
+            counts[group_size] = 1
+        else:
+            counts[group_size] += 1
+
+    print(counts)
+    print(len(grouped_palette))
 
 def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
     height, width, _ = pixel_array.shape
@@ -19,6 +39,35 @@ def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
     print(f"Unique colors found: {len(unique_colors)}")
 
     return unique_colors
+
+def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], threshold): # TODO try non-strict
+    hex_colors = list(palette.keys())
+    n = len(hex_colors)
+    used = set()
+    groups = []
+
+    for i in range(n):
+        hex_color = hex_colors[i]
+        if hex_color in used:
+            continue
+
+        group = [hex_color]
+        used.add(hex_color)
+
+        for j in range(i + 1, n):
+            hex_color_compare = hex_colors[j]
+            if hex_color_compare in used:
+                continue
+
+            # Check if j is close to ALL members already in group
+            if all(np.linalg.norm(palette[hex_color_compare].color_lab - palette[hex_color_group].color_lab) <= threshold
+                   for hex_color_group in group):
+                group.append(hex_color_compare)
+                used.add(hex_color_compare)
+
+        groups.append([palette[idx] for idx in group])
+
+    return groups
 
 
 def rgb_to_hex(rgb):
