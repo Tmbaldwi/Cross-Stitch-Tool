@@ -2,13 +2,32 @@ import numpy as np
 
 from app.models.palette_color_model import Palette_Color
 
-def get_closest_n_thread_colors_for_image(image_pixel_array, n: int):
+def generate_color_normalized_image(image_pixel_array):
     # Get color palette and occurrences
     palette = process_image_for_color_palette(image_pixel_array)
+    old_color_count = len(palette)
 
-    # Group nearby colors
-    grouped_palette = group_nearby_palette_colors_strict(palette=palette, threshold=3.5)
+    # Group nearby colors TODO remove strict one eventually
+    print("Strict ===========================")
+    grouped_palette_strict = group_nearby_palette_colors_strict(palette=palette, threshold=4)
+    
+    test_efficacy(grouped_palette=grouped_palette_strict)
+    print("Connected ========================")
+    grouped_palette_connected = group_nearby_palette_colors_connected(palette=palette, threshold=4)
+    new_color_count = len(grouped_palette_connected)
+    test_efficacy(grouped_palette=grouped_palette_connected)
 
+    # Replace grouped colors with singular color
+    normalized_image = normalize_image(grouped_palette_connected, image_pixel_array)
+
+    return old_color_count, new_color_count, normalized_image
+
+def normalize_image(grouped_palette: dict[str,list[Palette_Color]], pixel_array):
+    # TODO implement
+    return
+
+# debug testing
+def test_efficacy(grouped_palette):
     counts : dict[int, int] = {}
     for color_group in grouped_palette:
         group_size = len(color_group)
@@ -17,7 +36,9 @@ def get_closest_n_thread_colors_for_image(image_pixel_array, n: int):
         else:
             counts[group_size] += 1
 
-    print(counts)
+    sorted_counts = {key: counts[key] for key in sorted(counts)}
+
+    print(sorted_counts)
     print(len(grouped_palette))
 
 def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
@@ -40,7 +61,7 @@ def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
 
     return unique_colors
 
-def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], threshold): # TODO try non-strict
+def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], threshold) -> dict[str,list[Palette_Color]]:
     hex_colors = list(palette.keys())
     n = len(hex_colors)
     used = set()
@@ -68,6 +89,42 @@ def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], thresh
         groups.append([palette[idx] for idx in group])
 
     return groups
+
+def group_nearby_palette_colors_connected(palette: dict[str, Palette_Color], threshold):
+    hex_colors = list(palette.keys())
+    n = len(hex_colors)
+    used = set()
+    groups = []
+
+    for i in range(n):
+        hex_color = hex_colors[i]
+
+        if hex_color in used:
+            continue
+
+        queue = [hex_color]
+        used.add(hex_color)
+        group = [hex_color]
+
+        while queue:
+            current = queue.pop()
+
+            for j in range(i + 1, n):
+                hex_color_compare = hex_colors[j]
+
+                if hex_color_compare in used:
+                    continue
+
+                # Check if compared color is close to ANY member in the group
+                dist = np.linalg.norm(palette[hex_color_compare].color_lab - palette[current].color_lab)
+                if dist <= threshold:
+                    used.add(hex_color_compare)
+                    queue.append(hex_color_compare)
+                    group.append(hex_color_compare)
+
+        groups.append([palette[idx] for idx in group])
+
+    return groups  
 
 
 def rgb_to_hex(rgb):

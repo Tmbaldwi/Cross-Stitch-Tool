@@ -22,7 +22,7 @@ export class ImageService {
     formData.append('image_file', image, image.name);
 
     return this.http.post(
-      `${this.baseUrl}/api/image/resize-image`, 
+      `${this.baseUrl}/api/image/rescale-image`, 
       formData,
       {
         responseType: 'blob',
@@ -50,7 +50,7 @@ export class ImageService {
         )
   }
 
-  parsePaletteAndMapClosestColors(imageBlob: Blob) : Observable<any>{
+  getColorNormalizedImage(imageBlob: Blob) : Observable<any>{
     if(!imageBlob){
       console.error('No image blob was provided');
       return throwError(() => new Error('No image blob was provided'));
@@ -61,7 +61,7 @@ export class ImageService {
     formData.append('image_file', imageBlob, "scaledImage.png");
 
     return this.http.post(
-      `${this.baseUrl}/api/image/parse-palette-and-map-closest-colors`,
+      `${this.baseUrl}/api/image/color-normalize-image`,
       formData
     ).pipe(
         catchError(err => {

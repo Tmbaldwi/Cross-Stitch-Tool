@@ -3,15 +3,15 @@ from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 import numpy as np
 from PIL import Image
 from app.scripts.image_resizing import return_compressed_image
-from app.scripts.image_processing import get_closest_n_thread_colors_for_image
+from app.scripts.image_processing import generate_color_normalized_image
 
 router = APIRouter(
     prefix="/image",
     tags=["Image"]
 )
 
-@router.post("/resize-image", summary= "Analyzes the provided image and returns a (potentially) compressed image along with dimensional changes.")
-async def image_resize_analysis(image_file: UploadFile = File(...)):
+@router.post("/rescale-image", summary= "Analyzes the provided image and returns a (potentially) compressed image along with dimensional changes.")
+async def rescale_image(image_file: UploadFile = File(...)):
     # Image type validation
     if not image_file.content_type or not image_file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image type")
@@ -25,7 +25,7 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    # Conversion and Analysis
+    # Convert and rescale Image
     np_image = np.frombuffer(image_bytes, dtype=np.uint8)
 
     try:
@@ -51,8 +51,8 @@ async def image_resize_analysis(image_file: UploadFile = File(...)):
         headers=headers
     )
 
-@router.post("/parse-palette-and-map-closest-colors")
-async def parse_palette_and_map_closest_colors(image_file: UploadFile = File(...)):
+@router.post("/color-normalize-image")
+async def color_normalize_image(image_file: UploadFile = File(...)):
     # Image type validation
     if not image_file.content_type or not image_file.content_type.startswith("image/png"):
         raise HTTPException(status_code=400, detail="File must be 'png' type")
@@ -65,16 +65,29 @@ async def parse_palette_and_map_closest_colors(image_file: UploadFile = File(...
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    # Conversion and Analysis
+    # Convert and normalize image
     image = image.convert("RGB")
     pixel_array = np.array(image)
 
     try:
-        palette = get_closest_n_thread_colors_for_image(pixel_array, 5)
+        old_color_count, new_color_count, color_normalize_image = generate_color_normalized_image(pixel_array)
+
+        with io.BytesIO() as buf:
+            Image.fromarray(color_normalize_image).save(buf, format="PNG")
+            compressed_image_bytes = buf.getvalue()
     except Exception as ex:
         raise HTTPException(
             status_code=500, 
             detail="Something went wrong during image compression: " + str(ex)
         ) from ex
     
-    return
+    headers = {
+        "old-color-count": str(old_color_count),
+        "new-color-count": str(new_color_count)
+    }
+    
+    return Response(
+        content=compressed_image_bytes,
+        media_type="image/png",
+        headers=headers
+    )

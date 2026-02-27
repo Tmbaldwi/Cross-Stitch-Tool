@@ -4,12 +4,12 @@ import { FormGroup } from '@angular/forms';
 import { ImageService } from '../../../services/image-service';
 
 @Component({
-  selector: 'app-thread-selection-step',
+  selector: 'app-image-normalization-step',
   imports: [],
-  templateUrl: './thread-selection-step.html',
-  styleUrl: './thread-selection-step.scss',
+  templateUrl: './image-normalization-step.html',
+  styleUrl: './image-normalization-step.scss',
 })
-export class ThreadSelectionStep {
+export class ImageNormalizationStep {
   readonly imageHistoryForm = input.required<FormGroup>();
   stepper = inject(CdkStepper)
   service = inject(ImageService)
@@ -17,12 +17,12 @@ export class ThreadSelectionStep {
   ngOnInit(){
     this.stepper.selectionChange.subscribe((event) =>{
       if(event.selectedIndex === 2){
-        this.getColorPaletteForRescaledImage();
+        this.getColorNormalizedImage();
       }
     })
   }
 
-  async getColorPaletteForRescaledImage(){
+  async getColorNormalizedImage(){
     const imageBitmap: ImageBitmap = this.imageHistoryForm().get('scaledImageBitmap')?.value;
 
     // Convert bitmap to blob
@@ -35,7 +35,7 @@ export class ThreadSelectionStep {
 
     const imageBlob: Blob = await new Promise<Blob>((resolve) => imageCanvas.toBlob(blob => resolve(blob!), 'image/png'));
 
-    this.service.parsePaletteAndMapClosestColors(imageBlob).subscribe(res => {
+    this.service.getColorNormalizedImage(imageBlob).subscribe(res => {
       console.log(res)
     })
   }

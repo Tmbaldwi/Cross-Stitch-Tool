@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ThreadSelectionStep } from './thread-selection-step';
+import { ImageNormalizationStep } from './image-normalization-step';
 
-describe('ThreadSelectionStep', () => {
-  let component: ThreadSelectionStep;
-  let fixture: ComponentFixture<ThreadSelectionStep>;
+describe('ImageNormalizationStep', () => {
+  let component: ImageNormalizationStep;
+  let fixture: ComponentFixture<ImageNormalizationStep>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ThreadSelectionStep]
+      imports: [ImageNormalizationStep]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ThreadSelectionStep);
+    fixture = TestBed.createComponent(ImageNormalizationStep);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
