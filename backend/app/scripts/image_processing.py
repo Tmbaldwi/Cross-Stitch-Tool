@@ -22,9 +22,20 @@ def generate_color_normalized_image(image_pixel_array):
 
     return old_color_count, new_color_count, normalized_image
 
-def normalize_image(grouped_palette: dict[str,list[Palette_Color]], pixel_array):
-    # TODO implement
-    return
+def normalize_image(grouped_palette: list[list[Palette_Color]], pixel_array):
+    color_lookup = get_color_lookup_table(grouped_palette)
+
+    height, width, _ = pixel_array.shape
+
+    for col in range(width):
+        for row in range(height):
+            pixel = pixel_array[row,col]
+            color_hex = rgb_to_hex(pixel)
+
+            # Replace color with the color group's average
+            pixel_array[row,col] = color_lookup[color_hex]
+    
+    return pixel_array
 
 # debug testing
 def test_efficacy(grouped_palette):
@@ -40,6 +51,24 @@ def test_efficacy(grouped_palette):
 
     print(sorted_counts)
     print(len(grouped_palette))
+
+def get_color_lookup_table(color_groups: list[list[Palette_Color]]):
+    # Organlize groups into lookup
+    group_lookup: dict[str, str] = {}
+
+    for group in color_groups:
+        group_size = len(group)
+        total_rgb = (0,0,0)
+
+        for color in group:
+            total_rgb = tuple(x + y for x, y in zip(total_rgb, color.color_rgb))
+        
+        average_rgb = tuple(color_value // group_size for color_value in total_rgb)
+
+        for color in group:
+            group_lookup[color.color_hex] = average_rgb
+
+    return group_lookup  
 
 def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
     height, width, _ = pixel_array.shape
@@ -61,7 +90,7 @@ def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
 
     return unique_colors
 
-def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], threshold) -> dict[str,list[Palette_Color]]:
+def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], threshold) -> list[list[Palette_Color]]:
     hex_colors = list(palette.keys())
     n = len(hex_colors)
     used = set()
@@ -90,11 +119,11 @@ def group_nearby_palette_colors_strict(palette: dict[str, Palette_Color], thresh
 
     return groups
 
-def group_nearby_palette_colors_connected(palette: dict[str, Palette_Color], threshold):
+def group_nearby_palette_colors_connected(palette: dict[str, Palette_Color], threshold) -> list[list[Palette_Color]]:
     hex_colors = list(palette.keys())
     n = len(hex_colors)
     used = set()
-    groups = []
+    groups : list[list[Palette_Color]] = []
 
     for i in range(n):
         hex_color = hex_colors[i]
@@ -124,7 +153,7 @@ def group_nearby_palette_colors_connected(palette: dict[str, Palette_Color], thr
 
         groups.append([palette[idx] for idx in group])
 
-    return groups  
+    return groups
 
 
 def rgb_to_hex(rgb):
