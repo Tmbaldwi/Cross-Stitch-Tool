@@ -14,24 +14,8 @@
     max-width: 1000px;
 }
 
-.upload-box{
+app-image-frame{
     width: 100%;
-    min-width: 200px;
-    max-width: 1000px;
-
-    height: min(50vh, 500px);
-    min-height: 100px;
-    max-height: 500px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background-color: #1F1F1F;
-
-    font-family: sans-serif;
-    text-align: center;
 }
 
 .upload-box:hover{    

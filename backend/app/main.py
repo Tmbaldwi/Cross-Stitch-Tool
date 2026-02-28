@@ -13,5 +13,5 @@ app.add_middleware( # TODO ONLY FOR DEV
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["old-width", "old-height"]
+    expose_headers=["old-width", "old-height", "old-color-count", "new-color-count"],
 )

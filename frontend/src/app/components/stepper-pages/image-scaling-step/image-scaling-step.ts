@@ -6,11 +6,12 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
-import { ImageAnalysis } from '../../../services/models/image-analysis.model';
+import { ImageRescaleResponse } from '../../../services/models/image-rescale-response.model';
+import { ImageFrame } from "../../common/image-frame/image-frame";
 
 @Component({
   selector: 'app-image-scaling-step',
-  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
   templateUrl: './image-scaling-step.html',
   styleUrl: './image-scaling-step.scss',
 })
@@ -22,7 +23,7 @@ export class ImageScalingStep {
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
-  public imageRescale : ImageAnalysis | undefined = undefined;
+  public imageRescale : ImageRescaleResponse | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
 

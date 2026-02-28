@@ -1,7 +1,6 @@
 <section class="container">
     <div class="contents">
-        <label 
-            class="upload-box" 
+        <app-image-frame 
             for="file" 
             [style.border]="uploadBoxBorder()"
             appFileDragAndDrop 
@@ -36,7 +35,7 @@
                     <img [src]="previewUrl">
                 </div>
             }
-        </label>
+        </app-image-frame>
 
         <div class="sample-image-container">
             @for(image of sampleImages; track image.id){

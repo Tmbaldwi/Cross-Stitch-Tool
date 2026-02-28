@@ -2,8 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from './../../../environments/environment';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
-import { ImageAnalysis } from './models/image-analysis.model';
-import { ThreadColor } from './models/thread-color.model';
+import { ImageRescaleResponse } from './models/image-rescale-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +11,7 @@ export class ImageService {
   private http = inject(HttpClient)
   private baseUrl = environment.apiBaseUrl;
 
-  getRescaledImage(image: File) : Observable<ImageAnalysis>{
+  getRescaledImage(image: File) : Observable<ImageRescaleResponse>{
     if(!image){
       console.error('No image file was provided');
       return throwError(() => new Error('No file provided'));
@@ -37,8 +36,8 @@ export class ImageService {
 
             return from(createImageBitmap(blob)).pipe(
               map(bitmap => ({
-                old_width: oldWidth,
-                old_height: oldHeight,
+                oldWidth: oldWidth,
+                oldHeight: oldHeight,
                 scaledImageBitmap: bitmap
               }))
             );
@@ -62,12 +61,30 @@ export class ImageService {
 
     return this.http.post(
       `${this.baseUrl}/api/image/color-normalize-image`,
-      formData
-    ).pipe(
-        catchError(err => {
-          console.error('Palette parsing and color mapping failed:', err);
-          return throwError(() => err as Error);
-        })
-      )
+      formData,
+      {
+        responseType: 'blob',
+        observe: 'response'
+      }
+      ).pipe(
+          switchMap(response => {
+            const blob = response.body as Blob;
+
+            const oldColorCount = Number(response.headers.get('old-color-count'));
+            const newColorCount = Number(response.headers.get('new-color-count'));
+
+            return from(createImageBitmap(blob)).pipe(
+              map(bitmap => ({
+                oldColorCount: oldColorCount,
+                newColorCount: newColorCount,
+                normalizedImageBitmap: bitmap
+              }))
+            );
+          }),
+          catchError(err => {
+            console.error('Resize failed:', err);
+            return throwError(() => err as Error);
+          })
+        )
   }
 }

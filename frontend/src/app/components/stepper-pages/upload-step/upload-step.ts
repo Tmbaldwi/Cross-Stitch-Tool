@@ -1,10 +1,10 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
-import { ImageService } from '../../../services/image-service';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
+import { ImageFrame } from "../../common/image-frame/image-frame";
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
@@ -13,7 +13,7 @@ const unuploadedImageBorderStyle : string = '4px dashed';
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
+  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })

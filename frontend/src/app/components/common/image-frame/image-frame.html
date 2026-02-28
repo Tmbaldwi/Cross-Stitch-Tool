@@ -1,0 +1,15 @@
+  <ng-content></ng-content>
+
+  <!-- Loading overlay -->
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <p>Loading...</p>
+    </div>
+  }
+
+  <!-- Error display -->
+  @if (errorMessage()) {
+    <div class="error-overlay">
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
