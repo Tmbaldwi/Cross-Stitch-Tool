@@ -12,6 +12,7 @@ export class FileDragAndDrop {
   constructor() { }
 
   @HostListener('dragover', ['$event']) public onDragOver(event: any){
+    console.log("dragover")
     event.preventDefault();
     event.stopPropagation();
 

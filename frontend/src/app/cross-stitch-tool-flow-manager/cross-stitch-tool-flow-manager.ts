@@ -29,6 +29,12 @@ export class CrossStitchToolFlowManager {
         Validators.required, 
       ]
     ),
+    normalizedImageBitmap : new FormControl<ImageBitmap | null>(
+      null,
+      [
+        Validators.required,
+      ]
+    )
   });
 
   get uploadStepFileControl(): FormControl<File | null> {
@@ -37,5 +43,9 @@ export class CrossStitchToolFlowManager {
 
   get scalingStepFileControl(): FormControl<string | null> {
     return this.imageFileHistoryForm.get('scaledImageBitmap') as FormControl<string | null>;
+  }
+
+  get normalizedImageBitmap(): FormControl<string | null> {
+    return this.imageFileHistoryForm.get('normalizedImageBitmap') as FormControl<string | null>;
   }
 }

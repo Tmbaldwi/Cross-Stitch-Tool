@@ -14,7 +14,7 @@
     max-width: 1000px;
 }
 
-app-image-frame{
+.image-frame{
     width: 100%;
 }
 
@@ -26,13 +26,6 @@ canvas{
     width: 100%;
     image-rendering: pixelated;
     object-fit: contain;
-}
-
-.loading-overlay{
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .text-box{

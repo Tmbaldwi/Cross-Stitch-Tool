@@ -1,6 +1,11 @@
 <section class="container">
     <div class="contents">
-        <app-image-frame [isLoading]="isLoading()">
+        <app-image-frame 
+            class="image-frame"
+            [isLoading]="isLoading()"
+            [showTextBox]="true"
+            [errorMessage]="errorMessage()"
+        >
             <canvas #canvas></canvas>
         </app-image-frame>
         <div class="text-box">

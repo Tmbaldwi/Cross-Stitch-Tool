@@ -1,1 +1,50 @@
-<p>image-normalization-step works!</p>
+<section class="container">
+    <div class="contents">
+        <app-image-frame 
+            class="image-frame"
+            [isLoading]="isLoading()"
+            [showTextBox]="true"
+            [errorMessage]="errorMessage()"
+        >
+            <canvas #canvas></canvas>
+        </app-image-frame>
+        <div class="text-box">
+            @if(isLoading()){
+                <p>Loading...</p>
+            }
+            @else if (errorMessage()) {
+                <span style="color: red">{{errorMessage()}}</span>
+            }
+            @else if(imageColorNormalize?.newColorCount == imageColorNormalize?.oldColorCount){
+                <span>
+                    The image kept its original color palette of <b>{{imageColorNormalize?.newColorCount}}</b> unique colors
+                </span>
+            } @else {
+                <span>
+                    The image has reduced its color palette from <b>{{imageColorNormalize?.oldColorCount}}</b> to <b>{{imageColorNormalize?.newColorCount}}</b> unique colors
+                </span>
+            }
+        </div>
+        <div class="button-container">
+            <div class="back-button-box">
+                <button 
+                    matButton="filled"
+                    matStepperPrevious
+                    class="light-scheme-button"
+                >
+                    &larr; Back
+                </button>
+            </div>
+            <div class="next-button-box">
+                <button 
+                    matButton="filled"
+                    matStepperNext
+                    [disabled]="isNextButtonDisabled()"
+                    class="light-scheme-button"
+                >
+                    Select Thread Colors &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+</section>

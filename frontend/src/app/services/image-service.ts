@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from './../../../environments/environment';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { ImageRescaleResponse } from './models/image-rescale-response.model';
+import { ImageColorNormalizeResponse } from './models/image-color-normalize-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +50,7 @@ export class ImageService {
         )
   }
 
-  getColorNormalizedImage(imageBlob: Blob) : Observable<any>{
+  getColorNormalizedImage(imageBlob: Blob) : Observable<ImageColorNormalizeResponse>{
     if(!imageBlob){
       console.error('No image blob was provided');
       return throwError(() => new Error('No image blob was provided'));

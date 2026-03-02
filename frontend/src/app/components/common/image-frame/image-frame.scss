@@ -1,4 +1,4 @@
-:host {
+.frame-content {
     width: 100%;
     min-width: 200px;
     max-width: 1000px;
@@ -18,4 +18,15 @@
     border-radius: 8px;
 
     padding: 10px;
+}
+
+.loading-overlay, .error-overlay{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-overlay{
+    color: red;
 }

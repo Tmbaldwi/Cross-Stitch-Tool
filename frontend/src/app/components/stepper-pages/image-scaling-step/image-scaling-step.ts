@@ -8,6 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
 import { ImageRescaleResponse } from '../../../services/models/image-rescale-response.model';
 import { ImageFrame } from "../../common/image-frame/image-frame";
+import { clearCanvas, displayBitmapOnCanvas } from '../../../utility/canvas.utils';
 
 @Component({
   selector: 'app-image-scaling-step',
@@ -17,12 +18,13 @@ import { ImageFrame } from "../../common/image-frame/image-frame";
 })
 export class ImageScalingStep {
   @ViewChild('canvas', { static: true })
-  canvasRef!: ElementRef<HTMLCanvasElement>;
+  private canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly imageHistoryForm = input.required<FormGroup>();
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
+
   public imageRescale : ImageRescaleResponse | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
@@ -46,6 +48,9 @@ export class ImageScalingStep {
   }
 
   onStepBegin() {
+    this.imageRescale = undefined;
+    clearCanvas(this.canvasRef.nativeElement);
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
@@ -61,7 +66,7 @@ export class ImageScalingStep {
 
         this.imageHistoryForm().get('scaledImageBitmap')?.setValue(res.scaledImageBitmap);
 
-        this.displayBitmap(res.scaledImageBitmap);
+        displayBitmapOnCanvas(res.scaledImageBitmap, this.canvasRef.nativeElement);
       },
 
       error: (error: unknown) => {
@@ -86,16 +91,5 @@ export class ImageScalingStep {
         this.isLoading.set(false);
       }
     });
-  }
-
-  displayBitmap(bitmap: ImageBitmap) {
-    const canvas = this.canvasRef.nativeElement;
-    const ctx = canvas.getContext('2d')!;
-
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bitmap, 0, 0);
   }
 }

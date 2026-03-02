@@ -1,6 +1,6 @@
 import { Component, computed, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
+import { FileDragAndDrop } from '../../../directives/file-drag-and-drop/file-drag-and-drop';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,7 @@ const unuploadedImageBorderStyle : string = '4px dashed';
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
+  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
@@ -87,6 +87,7 @@ export class UploadStep {
     // TODO this will need to be changed for sample images
     this.imageHistoryForm().get('originalImage')?.setValue(null);
     this.imageHistoryForm().get('scaledImageBitmap')?.setValue(null);
+    this.imageHistoryForm().get('normalizedImageBitmap')?.setValue(null);
 
     if(this.selectedFileIdx() === 0){
       this.selectedFileIdx.set(-1);
