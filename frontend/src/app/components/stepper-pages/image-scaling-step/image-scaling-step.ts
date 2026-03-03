@@ -6,23 +6,26 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
-import { ImageAnalysis } from '../../../services/models/image-analysis.model';
+import { ImageRescaleResponse } from '../../../services/models/image-rescale-response.model';
+import { ImageFrame } from "../../common/image-frame/image-frame";
+import { clearCanvas, displayBitmapOnCanvas } from '../../../utility/canvas.utils';
 
 @Component({
   selector: 'app-image-scaling-step',
-  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
   templateUrl: './image-scaling-step.html',
   styleUrl: './image-scaling-step.scss',
 })
 export class ImageScalingStep {
   @ViewChild('canvas', { static: true })
-  canvasRef!: ElementRef<HTMLCanvasElement>;
+  private canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly imageHistoryForm = input.required<FormGroup>();
 
   private stepper = inject(CdkStepper);
   private service = inject(ImageService);
-  public imageRescale : ImageAnalysis | undefined = undefined;
+
+  public imageRescale : ImageRescaleResponse | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
 
@@ -45,6 +48,9 @@ export class ImageScalingStep {
   }
 
   onStepBegin() {
+    this.imageRescale = undefined;
+    clearCanvas(this.canvasRef.nativeElement);
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
@@ -52,13 +58,15 @@ export class ImageScalingStep {
   }
 
   getRescaledImage() {
-    this.service.getRescaledImage().subscribe({
+    const originalImage: File = this.imageHistoryForm().get('originalImage')?.value;
+
+    this.service.getRescaledImage(originalImage).subscribe({
       next: (res) => {
         this.imageRescale = res;
 
         this.imageHistoryForm().get('scaledImageBitmap')?.setValue(res.scaledImageBitmap);
 
-        this.displayBitmap(res.scaledImageBitmap);
+        displayBitmapOnCanvas(res.scaledImageBitmap, this.canvasRef.nativeElement);
       },
 
       error: (error: unknown) => {
@@ -83,16 +91,5 @@ export class ImageScalingStep {
         this.isLoading.set(false);
       }
     });
-  }
-
-  displayBitmap(bitmap: ImageBitmap) {
-    const canvas = this.canvasRef.nativeElement;
-    const ctx = canvas.getContext('2d')!;
-
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bitmap, 0, 0);
   }
 }

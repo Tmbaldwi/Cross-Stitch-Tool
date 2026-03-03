@@ -1,0 +1,23 @@
+@if (isDragDropEnabled()) {
+  <div class="frame-content" [style.border]="customBorder()" appFileDragAndDrop>
+    <ng-container *ngTemplateOutlet="frameContent" />
+  </div>
+} @else {
+  <div class="frame-content" [style.border]="customBorder()">
+    <ng-container *ngTemplateOutlet="frameContent" />
+  </div>
+}
+
+<ng-template #frameContent>
+  <ng-content></ng-content>
+
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <p>Loading...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-overlay">
+      <span>Failed</span>
+    </div>
+  }
+</ng-template>

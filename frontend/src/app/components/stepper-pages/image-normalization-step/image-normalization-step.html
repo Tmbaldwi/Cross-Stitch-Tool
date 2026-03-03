@@ -15,13 +15,13 @@
             @else if (errorMessage()) {
                 <span style="color: red">{{errorMessage()}}</span>
             }
-            @else if(imageRescale?.scaledImageBitmap?.height == imageRescale?.oldHeight && imageRescale?.scaledImageBitmap?.width == imageRescale?.oldWidth){
+            @else if(imageColorNormalize?.newColorCount == imageColorNormalize?.oldColorCount){
                 <span>
-                    The image kept its original size '<b>{{imageRescale?.oldWidth}}x{{imageRescale?.oldHeight}}</b>'
+                    The image kept its original color palette of <b>{{imageColorNormalize?.newColorCount}}</b> unique colors
                 </span>
             } @else {
                 <span>
-                    The image has been resized from size '<b>{{imageRescale?.oldWidth}}x{{imageRescale?.oldHeight}}</b>' to '<b>{{imageRescale?.scaledImageBitmap?.width}}x{{imageRescale?.scaledImageBitmap?.height}}</b>'
+                    The image has reduced its color palette from <b>{{imageColorNormalize?.oldColorCount}}</b> to <b>{{imageColorNormalize?.newColorCount}}</b> unique colors
                 </span>
             }
         </div>
@@ -42,7 +42,7 @@
                     [disabled]="isNextButtonDisabled()"
                     class="light-scheme-button"
                 >
-                    Normalize Image &rarr;
+                    Select Thread Colors &rarr;
                 </button>
             </div>
         </div>

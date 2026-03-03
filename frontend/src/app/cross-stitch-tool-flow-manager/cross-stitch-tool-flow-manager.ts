@@ -4,11 +4,11 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { UploadStep } from '../components/stepper-pages/upload-step/upload-step';
 import { ImageScalingStep } from '../components/stepper-pages/image-scaling-step/image-scaling-step';
 import { allowedFileTypes } from '../validators/file-type.validator';
-import { ThreadSelectionStep } from "../components/stepper-pages/thread-selection-step/thread-selection-step";
+import { ImageNormalizationStep } from "../components/stepper-pages/image-normalization-step/image-normalization-step";
 
 @Component({
   selector: 'app-cross-stitch-tool-flow-manager',
-  imports: [UploadStep, ImageScalingStep, MatStepperModule, ThreadSelectionStep],
+  imports: [UploadStep, ImageScalingStep, MatStepperModule, ImageNormalizationStep],
   templateUrl: './cross-stitch-tool-flow-manager.html',
   styleUrl: './cross-stitch-tool-flow-manager.scss',
 })
@@ -29,6 +29,12 @@ export class CrossStitchToolFlowManager {
         Validators.required, 
       ]
     ),
+    normalizedImageBitmap : new FormControl<ImageBitmap | null>(
+      null,
+      [
+        Validators.required,
+      ]
+    )
   });
 
   get uploadStepFileControl(): FormControl<File | null> {
@@ -37,5 +43,9 @@ export class CrossStitchToolFlowManager {
 
   get scalingStepFileControl(): FormControl<string | null> {
     return this.imageFileHistoryForm.get('scaledImageBitmap') as FormControl<string | null>;
+  }
+
+  get normalizedImageBitmap(): FormControl<string | null> {
+    return this.imageFileHistoryForm.get('normalizedImageBitmap') as FormControl<string | null>;
   }
 }

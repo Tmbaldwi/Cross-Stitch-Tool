@@ -1,10 +1,10 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { FileDragAndDrop } from '../../../directives/file-drag-and-drop';
-import { ImageService } from '../../../services/image-service';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
-import {MatIconModule} from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
+import { ImageFrame } from "../../common/image-frame/image-frame";
+import { CdkStepper } from '@angular/cdk/stepper';
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
@@ -13,23 +13,24 @@ const unuploadedImageBorderStyle : string = '4px dashed';
 
 @Component({
   selector: 'app-upload-step',
-  imports: [FileDragAndDrop, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule, ImageFrame],
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
 export class UploadStep {
-  readonly imageHistoryForm = input.required<FormGroup>();
+  private stepper = inject(CdkStepper);
+  private selectedFileIdx = signal<number>(-1);
 
-  sampleImages = [ // TODO get sample images from backend
+  public sampleImages = [ // TODO get sample images from backend
     { id: 1, imageUrl: 'https://picsum.photos/id/237/500/300' },
     { id: 2, imageUrl: 'https://picsum.photos/600/300' },
     { id: 3, imageUrl: 'https://picsum.photos/500/400' },
   ];
 
-  selectedFileIdx = signal<number>(-1);
-  file = signal<File | null>(null);
-  previewUrl: string | null = null;
-  errorMessage = signal<string | null>(null);
+  public readonly imageHistoryForm = input.required<FormGroup>();
+  public file = signal<File | null>(null);
+  public previewUrl: string | null = null;
+  public errorMessage = signal<string | null>(null);
 
   sampleImageBoxBorder = computed(() => {
     return (idx: number) => this.selectedFileIdx() === idx ? selectedBorderColor : unselectedBorderColor;
@@ -42,8 +43,6 @@ export class UploadStep {
       ? `${borderStyle} ${selectedBorderColor}`
       : `${borderStyle} ${unselectedBorderColor}`;
   });
-
-  private service = inject(ImageService);
 
   isNextButtonDisabled(){
     return this.imageHistoryForm().get('originalImage')?.invalid;
@@ -87,13 +86,16 @@ export class UploadStep {
     this.previewUrl = null;
 
     // TODO this will need to be changed for sample images
-    this.service.setFile(null);
-    this.imageHistoryForm().get('originalImage')?.setValue(null);
-    this.imageHistoryForm().get('scaledImageBitmap')?.setValue(null);
+    this.clearImageFileHistory()
 
     if(this.selectedFileIdx() === 0){
       this.selectedFileIdx.set(-1);
     }
+  }
+
+  clearImageFileHistory(){
+    this.imageHistoryForm().reset();
+    this.stepper.reset();
   }
 
   selectUploadImage(){
@@ -107,7 +109,7 @@ export class UploadStep {
 
     if(idx === 0 && this.file()){
       // TODO adjust for sample images
-      this.service.setFile(this.file());
+      this.imageHistoryForm().get('originalImage')?.setValue(this.file());
     }
 
     if(idx > 0){
