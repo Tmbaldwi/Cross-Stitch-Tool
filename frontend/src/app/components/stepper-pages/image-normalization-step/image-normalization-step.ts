@@ -1,4 +1,4 @@
-import { CdkStepper } from '@angular/cdk/stepper';
+import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ImageService } from '../../../services/image-service';
@@ -7,8 +7,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { ImageColorNormalizeResponse } from '../../../services/models/image-color-normalize-response.model';
-import { HttpErrorResponse } from '@angular/common/http';
 import { clearCanvas, displayBitmapOnCanvas } from '../../../utility/canvas.utils';
+import { catchError, EMPTY, from, Subject, switchMap, take, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-image-normalization-step',
@@ -23,30 +24,66 @@ export class ImageNormalizationStep {
   readonly imageHistoryForm = input.required<FormGroup>();
   private stepper = inject(CdkStepper)
   private service = inject(ImageService)
+  private colorNormalizeImage$ = new Subject<void>();
 
   public imageColorNormalize: ImageColorNormalizeResponse | undefined = undefined;
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
 
+  constructor() {
+    this.colorNormalizeImage$.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+      }),
+      switchMap(() => 
+        from(this.getScaledImageBlob()).pipe(
+          switchMap(blob => 
+            this.service.getColorNormalizedImage(blob).pipe(
+              take(1),
+              catchError(err => {
+                this.errorMessage.set("Something went wrong, please try again");
+                console.error(err);
+
+                this.isLoading.set(false);
+                return EMPTY;
+              })
+            ) 
+          )
+        )
+      )
+    ).subscribe({
+      next: (res) => {
+        this.imageColorNormalize = res;
+        this.imageHistoryForm().get('normalizedImageBitmap')?.setValue(res.normalizedImageBitmap);
+        displayBitmapOnCanvas(res.normalizedImageBitmap, this.canvasRef.nativeElement);
+
+        this.isLoading.set(false);
+      },
+    })
+  }
+
   ngOnInit(){
     this.stepper.selectionChange.subscribe((event) =>{
-      if(event.selectedIndex === 2){
-        this.onStepBegin();
+      if(this.imageNeedsNormalization(event)){
+        this.colorNormalizeImage();
       }
     })
   }
 
-  onStepBegin() {
-    this.imageColorNormalize = undefined;
-    clearCanvas(this.canvasRef.nativeElement);
-    
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.getColorNormalizedImage();
+  imageNeedsNormalization(event: StepperSelectionEvent){
+    const normalizedImageControl = this.imageHistoryForm().get('normalizedImageBitmap');
+    return event.selectedIndex === 2 && normalizedImageControl?.value === null
   }
 
-  async getColorNormalizedImage(){
+  colorNormalizeImage() {
+      this.imageColorNormalize = undefined;
+      clearCanvas(this.canvasRef.nativeElement);
+      this.colorNormalizeImage$.next();
+  }
+
+  async getScaledImageBlob() : Promise<Blob> {
     const imageBitmap: ImageBitmap = this.imageHistoryForm().get('scaledImageBitmap')?.value;
 
     // Convert bitmap to blob
@@ -57,39 +94,7 @@ export class ImageNormalizationStep {
     const ctx = imageCanvas.getContext('2d')!;
     ctx.drawImage(imageBitmap, 0, 0);
 
-    const imageBlob: Blob = await new Promise<Blob>((resolve) => imageCanvas.toBlob(blob => resolve(blob!), 'image/png'));
-
-    this.service.getColorNormalizedImage(imageBlob).subscribe({
-      next: (res) => {
-        this.imageColorNormalize = res;
-
-        this.imageHistoryForm().get('normalizedImageBitmap')?.setValue(res.normalizedImageBitmap);
-
-        displayBitmapOnCanvas(res.normalizedImageBitmap, this.canvasRef.nativeElement);
-      },
-
-      error: (error: unknown) => {
-        if (error instanceof HttpErrorResponse) {
-          this.errorMessage.set(
-            error.error?.detail ||
-            error.message ||
-            'Server error occurred'
-          );
-        } else if (error instanceof Error) {
-          this.errorMessage.set('Error occurred: ' + error.message);
-        } else {
-          this.errorMessage.set(
-            'An unknown error occurred. Please try again.'
-          );
-        }
-
-        this.isLoading.set(false);
-      },
-
-      complete: () => {
-        this.isLoading.set(false);
-      }
-    });
+    return await new Promise<Blob>((resolve) => imageCanvas.toBlob(blob => resolve(blob!), 'image/png'));
   }
   
   isNextButtonDisabled(){
