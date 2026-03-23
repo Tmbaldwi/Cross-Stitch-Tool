@@ -77,3 +77,19 @@ def process_pixel_art(
             dst_image[y, x] = new_pixel
 
     return dst_image
+
+
+def rgb_to_hex(rgb):
+    return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
+
+def hex_to_rgb(hex):
+    hex_color = hex.lstrip('#')
+
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    return [r,g,b]
+
+def rgb_to_int(rgb):
+    return (int(rgb[0]) << 16) | (int(rgb[1]) << 8) | int(rgb[2])

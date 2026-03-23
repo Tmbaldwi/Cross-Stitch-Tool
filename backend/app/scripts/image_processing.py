@@ -1,6 +1,7 @@
 import numpy as np
 
 from app.models.palette_color_model import Palette_Color
+from app.scripts.utility.image_processing_utility import rgb_to_hex, rgb_to_int
 
 def generate_color_normalized_image(image_pixel_array):
     # Get color palette and occurrences
@@ -21,15 +22,31 @@ def normalize_image(grouped_palette: list[list[Palette_Color]], pixel_array):
 
     height, width, _ = pixel_array.shape
 
-    for col in range(width):
-        for row in range(height):
-            pixel = pixel_array[row,col]
-            color_hex = rgb_to_hex(pixel)
+    pixels = pixel_array.reshape(-1, 3).astype(np.int32)
 
-            # Replace color with the color group's average
-            pixel_array[row,col] = color_lookup[color_hex]
-    
-    return pixel_array
+    # int conversion of hex
+    pixel_ints = (pixels[:, 0] << 16) | (pixels[:, 1] << 8) | pixels[:, 2]
+    unique_pixel_ints = np.unique(pixel_ints)
+
+    # Convert lookup to int
+    compact_lookup = np.zeros(len(unique_pixel_ints), dtype=np.int32)
+    for i, pixel_int in enumerate(unique_pixel_ints):
+        hex_color = rgb_to_hex([(pixel_int >> 16) & 0xFF, (pixel_int >> 8) & 0xFF, pixel_int & 0xFF])
+        compact_lookup[i] = rgb_to_int(color_lookup[hex_color])
+
+    # find our unique pixels in pixel ints w/ binary search
+    indices = np.searchsorted(unique_pixel_ints, pixel_ints)
+    # pull the replacement ints for every pixel
+    replaced_ints = compact_lookup[indices]
+
+    # replace the old pixels with our new pixel replacements
+    replaced_pixels = np.stack([
+        (replaced_ints >> 16) & 0xFF,
+        (replaced_ints >> 8)  & 0xFF,
+        replaced_ints        & 0xFF
+    ], axis=1).astype(np.uint8)
+
+    return replaced_pixels.reshape(height, width, 3)
 
 # debug testing
 def test_efficacy(grouped_palette):
@@ -46,7 +63,7 @@ def test_efficacy(grouped_palette):
     print(sorted_counts)
     print(len(grouped_palette))
 
-def get_color_lookup_table(color_groups: list[list[Palette_Color]]):
+def get_color_lookup_table(color_groups: list[list[Palette_Color]]) -> dict[str, str]:
     # Organlize groups into lookup
     group_lookup: dict[str, str] = {}
 
@@ -65,20 +82,15 @@ def get_color_lookup_table(color_groups: list[list[Palette_Color]]):
     return group_lookup  
 
 def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
-    height, width, _ = pixel_array.shape
-    print(pixel_array.shape)
+    pixels = pixel_array.reshape(-1,3)
+    unique_rgbs, counts = np.unique(pixels, axis=0, return_counts=True)
     unique_colors: dict[str, Palette_Color] = {}
 
-    # create list of unique colors from the image
-    for col in range(width):
-        for row in range(height):
-            pixel = pixel_array[row,col]
-            color_hex = rgb_to_hex(pixel)
-            
-            if color_hex not in unique_colors.keys():
-                unique_colors[color_hex] = Palette_Color(rgb=pixel, hex=color_hex, occurences=1)
-            else:
-                unique_colors[color_hex].occurences += 1
+    print(pixel_array.shape)
+
+    for rgb, count in zip(unique_rgbs, counts):
+        hex_color = rgb_to_hex(rgb)
+        unique_colors[hex_color] = Palette_Color(rgb=rgb, hex=hex_color, occurences=1)
     
     print(f"Unique colors found: {len(unique_colors)}")
 
@@ -119,16 +131,3 @@ def group_nearby_palette_colors_connected(palette: dict[str, Palette_Color], thr
         groups.append([palette[idx] for idx in group])
 
     return groups
-
-
-def rgb_to_hex(rgb):
-    return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
-
-def hex_to_rgb(hex):
-    hex_color = hex.lstrip('#')
-
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-
-    return [r,g,b]
