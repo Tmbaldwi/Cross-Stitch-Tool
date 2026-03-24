@@ -1,7 +1,25 @@
+from fastapi import Request
 import numpy as np
 
 from app.models.palette_color_model import Palette_Color
 from app.scripts.utility.image_processing_utility import rgb_to_hex, rgb_to_int
+from skimage.color import rgb2lab
+
+from app.models.thread_model import Thread
+
+def get_thread_palette_suggestions_for_image(image_pixel_array, request: Request) -> list[tuple[str, list[str]]]:
+    unique_colors = process_image_for_color_palette(image_pixel_array)
+    
+    hex_colors = list(unique_colors.keys())
+    rgbs = np.array([c.color_rgb for c in unique_colors.values()], dtype=np.float64) / 255.0
+    lab_array = rgb2lab(rgbs[np.newaxis, :, :])[0]
+
+    return [(hex_color, get_k_closest_threads(lab, 5, request)) 
+            for hex_color, lab in zip(hex_colors, lab_array)]
+
+def get_k_closest_threads(lab_array, k: int, request: Request) -> list[str]:
+    dists, indices = request.app.state.lab_color_tree.query(lab_array, k=k)
+    return [request.app.state.threads[idx].dmc_id for idx in indices]
 
 def generate_color_normalized_image(image_pixel_array):
     # Get color palette and occurrences
@@ -90,7 +108,7 @@ def process_image_for_color_palette(pixel_array) -> dict[str, Palette_Color]:
 
     for rgb, count in zip(unique_rgbs, counts):
         hex_color = rgb_to_hex(rgb)
-        unique_colors[hex_color] = Palette_Color(rgb=rgb, hex=hex_color, occurences=1)
+        unique_colors[hex_color] = Palette_Color(rgb=rgb, hex=hex_color, occurences=int(count))
     
     print(f"Unique colors found: {len(unique_colors)}")
 
