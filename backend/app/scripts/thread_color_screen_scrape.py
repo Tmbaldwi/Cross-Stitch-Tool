@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
-
+from skimage.color import rgb2lab
+from scipy.spatial import KDTree
 from app.models.thread_model import Thread
 
 thread_list_raw = [['3713', 'Salmon Very Light', '255', '226', '226', 'ffe2e2'],
@@ -493,7 +494,7 @@ def data_retrieval():
 #     print(str(item) + ",")
 
 
-def get_thread_list():
+def get_thread_list() -> list[Thread]:
     thread_list = []
 
     # get all threads and put them into thread data object
@@ -513,3 +514,11 @@ def get_thread_list_lab() -> dict[str,(Thread, list[int])]:
         thread_list_lab[thread[0]] = (thread_rgb, lab_list)
 
     return thread_list_lab
+
+def get_thread_list_lab_tree() -> KDTree:
+    thread_list = get_thread_list()
+
+    rgb_array = np.array([thread.rgb for thread in thread_list], dtype=np.float64) / 255.0
+    lab_array = rgb2lab(rgb_array[np.newaxis, :, :])[0]
+
+    return KDTree(lab_array)

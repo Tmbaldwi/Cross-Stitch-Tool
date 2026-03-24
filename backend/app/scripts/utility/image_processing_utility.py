@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from collections import defaultdict
+from skimage.color import rgb2lab
 
 def get_median_weighted(full_pixel: np.ndarray) -> np.ndarray:
     """
@@ -77,3 +78,23 @@ def process_pixel_art(
             dst_image[y, x] = new_pixel
 
     return dst_image
+
+
+def rgb_to_hex(rgb):
+    return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
+
+def hex_to_rgb(hex):
+    hex_color = hex.lstrip('#')
+
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    return [r,g,b]
+
+def rgb_to_int(rgb):
+    return (int(rgb[0]) << 16) | (int(rgb[1]) << 8) | int(rgb[2])
+
+def rgb_to_lab(rgb):
+    np_rgb = np.array([[rgb]], dtype=np.float64) / 255.0
+    return rgb2lab(np_rgb)[0][0]

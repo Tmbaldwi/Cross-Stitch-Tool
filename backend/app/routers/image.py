@@ -1,9 +1,11 @@
 import io
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFile
 import numpy as np
 from PIL import Image
 from app.scripts.image_resizing import return_compressed_image
-from app.scripts.image_processing import generate_color_normalized_image
+from app.scripts.image_processing import generate_color_normalized_image, get_thread_palette_suggestions_for_image
+from app.scripts.thread_color_screen_scrape import get_thread_list
+from app.scripts.utility.image_processing_utility import rgb_to_lab
 
 router = APIRouter(
     prefix="/image",
@@ -91,3 +93,35 @@ async def color_normalize_image(image_file: UploadFile = File(...)):
         media_type="image/png",
         headers=headers
     )
+
+@router.get("/dmc-thread-colors")
+def get_dmc_thread_colors(request: Request):
+    return request.app.state.threads
+
+@router.post("/find-closest-dmc-colors")
+async def color_normalize_image(request: Request, image_file: UploadFile = File(...)):
+    # Image type validation
+    if not image_file.content_type or not image_file.content_type.startswith("image/png"):
+        raise HTTPException(status_code=400, detail="File must be 'png' type")
+
+    image_bytes = await image_file.read()
+
+    # Image load validation
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    # Convert and normalize image
+    image = image.convert("RGB")
+    pixel_array = np.array(image)
+
+    try:
+        thread_color_associations = get_thread_palette_suggestions_for_image(pixel_array, request)
+    except Exception as ex:
+        raise HTTPException(
+            status_code=500, 
+            detail="Something went wrong during image compression: " + str(ex)
+        ) from ex
+       
+    return thread_color_associations

@@ -1,8 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import image
+from app.scripts.thread_color_screen_scrape import get_thread_list, get_thread_list_lab_tree
 
-app = FastAPI(title="Cross Stitch Tool Backend")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.threads = get_thread_list()
+    app.state.lab_color_tree = get_thread_list_lab_tree()
+    yield
+
+app = FastAPI(title="Cross Stitch Tool Backend", lifespan=lifespan)
 
 # Prefix all routes with /api
 app.include_router(image.router, prefix="/api")
