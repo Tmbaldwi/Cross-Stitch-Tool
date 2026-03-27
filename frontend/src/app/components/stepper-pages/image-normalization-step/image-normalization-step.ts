@@ -74,7 +74,7 @@ export class ImageNormalizationStep {
 
   imageNeedsNormalization(event: StepperSelectionEvent){
     const normalizedImageControl = this.imageHistoryForm().get('normalizedImageBitmap');
-    return event.selectedIndex === 2 && normalizedImageControl?.value === null
+    return event.selectedIndex === 2 && normalizedImageControl?.value === null;
   }
 
   colorNormalizeImage() {
