@@ -2,6 +2,7 @@ import io
 from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFile
 import numpy as np
 from PIL import Image
+from pydantic import BaseModel
 from app.scripts.image_resizing import return_compressed_image
 from app.scripts.image_processing import generate_color_normalized_image, get_thread_palette_suggestions_for_palette
 
@@ -96,8 +97,12 @@ async def color_normalize_image(image_file: UploadFile = File(...)):
 def get_dmc_thread_colors(request: Request):
     return request.app.state.threads
 
+class ColorPaletteRequest(BaseModel): # TODO MOVE
+    color_palette: list[str]
+
 @router.post("/find-closest-dmc-colors")
-async def color_normalize_image(request: Request, color_palette: list[str]):
+async def color_normalize_image(request: Request, body: ColorPaletteRequest):
+    color_palette = body.color_palette
     if len(color_palette) == 0:
         raise HTTPException(status_code=400, detail="Color palette cannot be empty")
 

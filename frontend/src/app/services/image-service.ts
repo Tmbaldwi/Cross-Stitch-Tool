@@ -88,4 +88,34 @@ export class ImageService {
           })
         )
   }
+
+  getThreadColorMasterList() : Observable<any> { // TODO specific type
+    return this.http.get(
+      `${this.baseUrl}/api/image/dmc-thread-colors`,
+    ).pipe(
+      catchError(err => {
+        console.error("Thread master list retrieval failed:", err);
+        return throwError(() => err as Error);
+      })
+    )
+  }
+
+  getThreadColorSuggestions(palette : Set<string>) : Observable<any> {
+    if(palette == null || palette.size == 0){
+      console.error("No color palette was provided");
+      return throwError(() => new Error("No color palette was provided"));
+    }
+
+    return this.http.post(
+      `${this.baseUrl}/api/image/find-closest-dmc-colors`,
+      {
+        color_palette: Array.from(palette)
+      }
+    ).pipe(
+      catchError(err => {
+        console.error("Thread color suggestions retrieval failed: ", err);
+        return throwError(() => err as Error);
+      })
+    )
+  }
 }
