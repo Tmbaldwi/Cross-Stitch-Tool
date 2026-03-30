@@ -1,0 +1,14 @@
+<div class="card">
+    <div class="top">
+        {{ colorHex() }}
+    </div>
+    <div class="list">
+        <ul>
+            @for (option of colorOptions(); track option) {
+                <li>
+                    {{ threadMasterList()[option].name }}
+                </li>
+            }
+        </ul>
+    </div>
+</div>

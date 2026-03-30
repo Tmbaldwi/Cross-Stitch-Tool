@@ -4,6 +4,7 @@ import { environment } from './../../../environments/environment';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { ImageRescaleResponse } from './models/image-rescale-response.model';
 import { ImageColorNormalizeResponse } from './models/image-color-normalize-response.model';
+import { ThreadColor } from './models/thread-color.model';
 
 @Injectable({
   providedIn: 'root',
@@ -89,10 +90,14 @@ export class ImageService {
         )
   }
 
-  getThreadColorMasterList() : Observable<any> { // TODO specific type
-    return this.http.get(
+  getThreadColorMasterList() : Observable<Record<string, ThreadColor>> {
+    return this.http.get<ThreadColor[]>(
       `${this.baseUrl}/api/image/dmc-thread-colors`,
     ).pipe(
+      map(response => response.reduce((dict, threadColor) => {
+        dict[threadColor.dmc_id] = threadColor;
+        return dict;
+      }, {} as Record<string, ThreadColor>)),
       catchError(err => {
         console.error("Thread master list retrieval failed:", err);
         return throwError(() => err as Error);
@@ -100,18 +105,22 @@ export class ImageService {
     )
   }
 
-  getThreadColorSuggestions(palette : Set<string>) : Observable<any> {
+  getThreadColorSuggestions(palette : Set<string>) : Observable<Record<string, string[]>> {
     if(palette == null || palette.size == 0){
       console.error("No color palette was provided");
       return throwError(() => new Error("No color palette was provided"));
     }
 
-    return this.http.post(
+    return this.http.post<any[]>(
       `${this.baseUrl}/api/image/find-closest-dmc-colors`,
       {
         color_palette: Array.from(palette)
       }
     ).pipe(
+      map(response => response.reduce((dict, colorMatch) => {
+        dict[colorMatch[0]] = colorMatch[1];
+        return dict;
+      }, {} as Record<string, string[]>)),
       catchError(err => {
         console.error("Thread color suggestions retrieval failed: ", err);
         return throwError(() => err as Error);

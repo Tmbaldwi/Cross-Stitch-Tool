@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ImageService } from '../../../services/image-service';
 import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -8,10 +8,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { displayBitmapOnCanvas } from '../../../utility/canvas.utils';
 import { concatMap, forkJoin, map, of } from 'rxjs';
+import { ThreadColor } from '../../../services/models/thread-color.model';
+import { ColorCard } from './color-card/color-card';
 
 @Component({
   selector: 'app-thread-selection-step',
-  imports: [SplitterModule, MatButtonModule, MatIconModule, ImageFrame],
+  imports: [SplitterModule, MatButtonModule, MatIconModule, ImageFrame, ColorCard],
   templateUrl: './thread-selection-step.html',
   styleUrl: './thread-selection-step.scss',
 })
@@ -26,6 +28,9 @@ export class ThreadSelectionStep implements AfterViewInit {
 
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
+  public colorPalette = signal<Set<string> | null>(null);
+  public threadSuggestions : Record<string, string[]> = {};
+  public threadMasterList : Record<string, ThreadColor> = {};
 
   ngAfterViewInit() {
     this.stepper.selectionChange.subscribe((event) => {
@@ -39,7 +44,7 @@ export class ThreadSelectionStep implements AfterViewInit {
     const canvas = document.getElementById('thread-selection-canvas') as HTMLCanvasElement;
     this.originalImageBitmap = this.imageHistoryForm().get('normalizedImageBitmap')?.value;
     displayBitmapOnCanvas(this.originalImageBitmap!, canvas);
-    this.loadData();
+    this.loadPaletteMatches();
   }
 
   imageReadyForThreadSelection(event: StepperSelectionEvent) : boolean {
@@ -47,7 +52,7 @@ export class ThreadSelectionStep implements AfterViewInit {
     return event.selectedIndex === 3 && normalizedImageControl?.value != null;
   }
 
-  loadData(){ // TODO name change
+  loadPaletteMatches() : void{
     const threadColors$ = this.service.getThreadColorMasterList();
     const paletteProcessing$ = of(this.getColorPaletteFromImage());
 
@@ -62,17 +67,23 @@ export class ThreadSelectionStep implements AfterViewInit {
       )
     ).subscribe({
       next: ({ threadColors, palette, matches}) => {
-        console.log(threadColors) // TODO actually load these
+        console.log(threadColors)
+        this.threadMasterList = threadColors;
+
         console.log(palette)
+        this.colorPalette.set(palette);
+        
         console.log(matches)
+        this.threadSuggestions = matches;
+
       },
       error: (err) => {
-        // TODO
+        console.error("Thread suggestion process failed: ", err);
       }
     })
   }
 
-  getColorPaletteFromImage(){
+  getColorPaletteFromImage() : Set<string> {
     const palette = new Set<string>();
 
     const ctx = this.canvasRef.nativeElement.getContext('2d')!;
