@@ -1,13 +1,48 @@
 .card {
     display: flex;
     flex-direction: column;
-    border: 1px solid white;
-    padding: 10px;
     min-width: 200px;
+    border: 2px solid grey;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.list {
+.color-display {
+    flex: 1;
+    display: flex;
+}
+
+.color-display > div {
+    flex: 1;
+    height: 50px;
+    border-bottom: 2px solid grey;
+}
+
+.color-display > div:first-child{
+    border-right: 2px solid grey;
+}
+
+.color-original {
+    background-color: blue;
+}
+
+.color-chosen {
+    background-color: aqua;
+}
+
+.color-choice-container{
+    padding: 10px;
+    border-bottom: 1px solid grey;
+}
+
+.color-list {
+    flex: 4;
     display: flex;
     flex-direction: column;
     padding: 10px;
+}
+
+mat-radio-group {
+    display: flex;
+    flex-direction: column;
 }

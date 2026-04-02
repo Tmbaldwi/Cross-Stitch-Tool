@@ -25,10 +25,12 @@ export class ThreadSelectionStep implements AfterViewInit {
   public stepper = inject(CdkStepper)
   private service = inject(ImageService)
   private originalImageBitmap: ImageBitmap | null = null;
+  private modifiedImageBitmap: ImageBitmap | null = null;
 
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
   public colorPalette = signal<Set<string> | null>(null);
+  public colorCoordinates : Map<string, number[]> | null = null;
   public threadSuggestions : Record<string, string[]> = {};
   public threadMasterList : Record<string, ThreadColor> = {};
 
@@ -40,10 +42,11 @@ export class ThreadSelectionStep implements AfterViewInit {
     });
   }
 
-  onPageLoad(): void {
+  async onPageLoad(): Promise<void> {
     const canvas = document.getElementById('thread-selection-canvas') as HTMLCanvasElement;
     this.originalImageBitmap = this.imageHistoryForm().get('normalizedImageBitmap')?.value;
-    displayBitmapOnCanvas(this.originalImageBitmap!, canvas);
+    this.modifiedImageBitmap = await createImageBitmap(this.originalImageBitmap!);
+    displayBitmapOnCanvas(this.modifiedImageBitmap!, canvas);
     this.loadPaletteMatches();
   }
 
@@ -54,28 +57,23 @@ export class ThreadSelectionStep implements AfterViewInit {
 
   loadPaletteMatches() : void{
     const threadColors$ = this.service.getThreadColorMasterList();
-    const paletteProcessing$ = of(this.getColorPaletteFromImage());
+    const paletteProcessing$ = of(this.processImagePixels());
 
     forkJoin({
       threadColors: threadColors$,
-      palette: paletteProcessing$
+      imageDetails: paletteProcessing$
     }).pipe(
-      concatMap(({ threadColors, palette}) => 
-        this.service.getThreadColorSuggestions(palette).pipe(
-          map(matches => ({ threadColors, palette, matches}))
+      concatMap(({ threadColors, imageDetails}) => 
+        this.service.getThreadColorSuggestions(imageDetails.palette).pipe(
+          map(matches => ({ threadColors, imageDetails, matches}))
         )
       )
     ).subscribe({
-      next: ({ threadColors, palette, matches}) => {
-        console.log(threadColors)
+      next: ({ threadColors, imageDetails, matches}) => {
         this.threadMasterList = threadColors;
-
-        console.log(palette)
-        this.colorPalette.set(palette);
-        
-        console.log(matches)
+        this.colorPalette.set(imageDetails.palette);
+        this.colorCoordinates = imageDetails.pixelMap;
         this.threadSuggestions = matches;
-
       },
       error: (err) => {
         console.error("Thread suggestion process failed: ", err);
@@ -83,11 +81,15 @@ export class ThreadSelectionStep implements AfterViewInit {
     })
   }
 
-  getColorPaletteFromImage() : Set<string> {
+  processImagePixels() : { palette: Set<string>, pixelMap: Map<string, number[]> }{
     const palette = new Set<string>();
+    const pixelMap = new Map<string, number[]>();
 
     const ctx = this.canvasRef.nativeElement.getContext('2d')!;
-    const imageData = ctx.getImageData(0,0, this.originalImageBitmap?.width!, this.originalImageBitmap?.height!)
+    const width = this.originalImageBitmap?.width!;
+    const height = this.originalImageBitmap?.height!;
+
+    const imageData = ctx.getImageData(0,0, width, height)
     const pixels = imageData.data;
 
     for(let i = 0; i < pixels.length; i += 4){
@@ -95,10 +97,54 @@ export class ThreadSelectionStep implements AfterViewInit {
       const g = pixels[i + 1];
       const b = pixels[i + 2];
 
+      // Add color to palette
       const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
       palette.add(hex);
+           
+      // Add color coordinate to lookup guide
+      if (!pixelMap.has(hex)) {
+        pixelMap.set(hex, []);
+      }
+
+      pixelMap.get(hex)!.push(i);
     }
 
-    return palette;
+    return {
+      palette: palette,
+      pixelMap: pixelMap
+    };
+  }
+
+  getColorSwapFn(originalColor: string){
+    return (newColor: string) => this.swapColorOnImage(originalColor, newColor);
+  }
+
+  swapColorOnImage(originalHex: string, newHex: string) : void {
+    const originalHexCoordinates : number[] | undefined = this.colorCoordinates?.get(originalHex);
+
+    if(originalHexCoordinates === undefined){
+      console.error(`Could not find coordinates for ${originalHex}`);
+      return;
+    }
+
+    const ctx = this.canvasRef.nativeElement.getContext('2d')!;
+    const width = this.originalImageBitmap?.width!;
+    const height = this.originalImageBitmap?.height!;
+
+    const imageData = ctx.getImageData(0,0, width, height)
+    const pixels = imageData.data;
+
+    const r = parseInt(newHex.slice(1, 3), 16);
+    const g = parseInt(newHex.slice(3, 5), 16);
+    const b = parseInt(newHex.slice(5, 7), 16);
+
+    for(let idx of originalHexCoordinates){
+      pixels[idx] = r;
+      pixels[idx+1] = g;
+      pixels[idx+2] = b;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
   }
 }

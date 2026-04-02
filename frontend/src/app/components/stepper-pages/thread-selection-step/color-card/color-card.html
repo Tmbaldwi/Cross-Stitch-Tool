@@ -1,14 +1,28 @@
 <div class="card">
-    <div class="top">
-        {{ colorHex() }}
+    <div class="color-display">
+        <div [style.background-color]="colorHex()"></div>
+        <div [style.background-color]="colorChoiceBg()"></div>
     </div>
-    <div class="list">
-        <ul>
-            @for (option of colorOptions(); track option) {
-                <li>
-                    {{ threadMasterList()[option].name }}
-                </li>
+    <div class="color-list">
+        <div class="color-choice-container">
+            @if(colorChoice() == null){
+                Select a Thread
             }
-        </ul>
+            @else{
+                {{ threadMasterList()[colorChoice()!].name }}
+            }
+            
+        </div>
+        <mat-radio-group
+        [(ngModel)]="colorChoice">
+            @for (option of colorOptions(); track option) {
+            <mat-radio-button 
+                [value]="option"
+                (change)="onColorChoice(option)"
+            >
+                {{threadMasterList()[option].name}}
+            </mat-radio-button>
+            }
+        </mat-radio-group>
     </div>
 </div>
