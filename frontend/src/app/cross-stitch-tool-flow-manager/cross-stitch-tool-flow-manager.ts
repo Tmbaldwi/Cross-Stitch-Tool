@@ -35,7 +35,8 @@ export class CrossStitchToolFlowManager {
       [
         Validators.required,
       ]
-    )
+    ),
+    threadSelections : new FormControl<Record<string, string>>({}),
   });
 
   get uploadStepFileControl(): FormControl<File | null> {

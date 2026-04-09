@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, input, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { ThreadColor } from '../../../../services/models/thread-color.model';
 import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';

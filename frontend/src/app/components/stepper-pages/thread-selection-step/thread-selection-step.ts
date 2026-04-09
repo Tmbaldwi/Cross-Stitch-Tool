@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ImageService } from '../../../services/image-service';
 import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -24,12 +24,12 @@ export class ThreadSelectionStep implements AfterViewInit {
   readonly imageHistoryForm = input.required<FormGroup>();
   public stepper = inject(CdkStepper)
   private service = inject(ImageService)
+  private cdr = inject(ChangeDetectorRef);
   private originalImageBitmap: ImageBitmap | null = null;
   private modifiedImageBitmap: ImageBitmap | null = null;
 
   public isLoading = signal(false);
   public errorMessage = signal<string | null>(null);
-  public colorPalette = signal<Set<string> | null>(null);
   public colorCoordinates : Map<string, number[]> | null = null;
   public threadSuggestions : Record<string, string[]> = {};
   public threadMasterList : Record<string, ThreadColor> = {};
@@ -47,7 +47,12 @@ export class ThreadSelectionStep implements AfterViewInit {
     this.originalImageBitmap = this.imageHistoryForm().get('normalizedImageBitmap')?.value;
     this.modifiedImageBitmap = await createImageBitmap(this.originalImageBitmap!);
     displayBitmapOnCanvas(this.modifiedImageBitmap!, canvas);
-    this.loadPaletteMatches();
+    this.loadPaletteMatches().then(() => {
+      const savedThreadSelections = this.imageHistoryForm().get('threadSelections')?.value ?? {};
+      for( const [original, chosen] of Object.entries(savedThreadSelections)) {
+        this.swapColorOnImage(original, chosen as string);
+      }
+    });
   }
 
   imageReadyForThreadSelection(event: StepperSelectionEvent) : boolean {
@@ -55,7 +60,7 @@ export class ThreadSelectionStep implements AfterViewInit {
     return event.selectedIndex === 3 && normalizedImageControl?.value != null;
   }
 
-  loadPaletteMatches() : void{
+  async loadPaletteMatches() : Promise<void>{
     const threadColors$ = this.service.getThreadColorMasterList();
     const paletteProcessing$ = of(this.processImagePixels());
 
@@ -71,9 +76,17 @@ export class ThreadSelectionStep implements AfterViewInit {
     ).subscribe({
       next: ({ threadColors, imageDetails, matches}) => {
         this.threadMasterList = threadColors;
-        this.colorPalette.set(imageDetails.palette);
         this.colorCoordinates = imageDetails.pixelMap;
         this.threadSuggestions = matches;
+
+        // Default thread selections to null
+        const existing = this.imageHistoryForm().get('threadSelections')?.value ?? {};
+        const initialThreadSelections : Record<string,string> = {};
+        for (const color of imageDetails.palette) {
+          initialThreadSelections[color] = existing[color] ?? null;
+        }
+        this.imageHistoryForm().get('threadSelections')?.setValue(initialThreadSelections);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("Thread suggestion process failed: ", err);
@@ -146,5 +159,15 @@ export class ThreadSelectionStep implements AfterViewInit {
 
     ctx.putImageData(imageData, 0, 0);
 
+    // Track selection
+    const threadSelectionRecords = this.imageHistoryForm().get('threadSelections');
+    threadSelectionRecords?.setValue({
+      ...threadSelectionRecords.value,
+      [originalHex]: newHex
+    });
+  }
+
+  get paletteColors(): string[] {
+    return Object.keys(this.imageHistoryForm().get('threadSelections')?.value ?? {});
   }
 }
