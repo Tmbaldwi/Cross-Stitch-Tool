@@ -5,11 +5,11 @@ from app.models.palette_color_model import Palette_Color
 from app.scripts.utility.image_processing_utility import hex_to_rgb, rgb_to_hex, rgb_to_int
 from skimage.color import rgb2lab
 
-def get_thread_palette_suggestions_for_palette(color_palette: list[str], request: Request) -> list[tuple[str, list[str]]]:
+def get_thread_palette_suggestions_for_palette(color_palette: list[str], request_count: int, request: Request) -> list[tuple[str, list[str]]]:
     rgbs = np.array([hex_to_rgb(hex) for hex in color_palette], dtype=np.float64) / 255.0
     lab_array = rgb2lab(rgbs[np.newaxis, :, :])[0]
 
-    return [(hex_color, get_k_closest_threads(lab, 5, request)) 
+    return [(hex_color, get_k_closest_threads(lab, request_count, request)) 
             for hex_color, lab in zip(color_palette, lab_array)]
 
 def get_k_closest_threads(lab_array, k: int, request: Request) -> list[str]:

@@ -10,6 +10,7 @@ import { displayBitmapOnCanvas } from '../../../utility/canvas.utils';
 import { concatMap, forkJoin, map, of } from 'rxjs';
 import { ThreadColor } from '../../../services/models/thread-color.model';
 import { ColorCard } from './color-card/color-card';
+import { hexToRgb, rgbToHsl } from '../../../utility/color.utils';
 
 @Component({
   selector: 'app-thread-selection-step',
@@ -69,7 +70,7 @@ export class ThreadSelectionStep implements AfterViewInit {
       imageDetails: paletteProcessing$
     }).pipe(
       concatMap(({ threadColors, imageDetails}) => 
-        this.service.getThreadColorSuggestions(imageDetails.palette).pipe(
+        this.service.getThreadColorSuggestions(imageDetails.palette, 5).pipe(
           map(matches => ({ threadColors, imageDetails, matches}))
         )
       )
@@ -168,6 +169,13 @@ export class ThreadSelectionStep implements AfterViewInit {
   }
 
   get paletteColors(): string[] {
-    return Object.keys(this.imageHistoryForm().get('threadSelections')?.value ?? {});
+    const hexColors: string[] = Object.keys(this.imageHistoryForm().get('threadSelections')?.value ?? {});
+
+    // Hs1 sorting, sorts by rainbow
+    return [...hexColors].sort((a,b) => {
+      const hs1A = rgbToHsl(hexToRgb(a));
+      const hs1B = rgbToHsl(hexToRgb(b));
+      return hs1A.h - hs1B.h;
+    })
   }
 }
