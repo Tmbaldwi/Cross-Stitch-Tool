@@ -2,9 +2,9 @@
     display: flex;
     flex-direction: column;
     min-width: 200px;
+    max-height: 350px;
     border: 2px solid grey;
     border-radius: 10px;
-    overflow: hidden;
 }
 
 .color-display {
@@ -33,6 +33,7 @@
 .color-choice-container{
     padding: 10px;
     border-bottom: 1px solid grey;
+    font-size: medium;
 }
 
 .color-list {
@@ -40,6 +41,7 @@
     display: flex;
     flex-direction: column;
     padding: 10px;
+    overflow: auto;
 }
 
 mat-radio-group {

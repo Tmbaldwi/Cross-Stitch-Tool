@@ -19,6 +19,8 @@ import { hexToRgb, rgbToHsl } from '../../../utility/color.utils';
   styleUrl: './thread-selection-step.scss',
 })
 export class ThreadSelectionStep implements AfterViewInit {
+  readonly FetchSize : number = 5;
+
   @ViewChild('canvas', { static: false })
   private canvasRef!: ElementRef<HTMLCanvasElement>;
   
@@ -69,8 +71,8 @@ export class ThreadSelectionStep implements AfterViewInit {
       threadColors: threadColors$,
       imageDetails: paletteProcessing$
     }).pipe(
-      concatMap(({ threadColors, imageDetails}) => 
-        this.service.getThreadColorSuggestions(imageDetails.palette, 5).pipe(
+      concatMap(({ threadColors, imageDetails }) => 
+        this.service.getThreadColorSuggestions(Array.from(imageDetails.palette), this.FetchSize).pipe(
           map(matches => ({ threadColors, imageDetails, matches}))
         )
       )

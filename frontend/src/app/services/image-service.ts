@@ -105,8 +105,8 @@ export class ImageService {
     )
   }
 
-  getThreadColorSuggestions(palette : Set<string>, requestCount: number) : Observable<Record<string, string[]>> {
-    if(palette == null || palette.size == 0){
+  getThreadColorSuggestions(palette : string[], requestCount: number) : Observable<Record<string, string[]>> {
+    if(palette == null || palette.length == 0){
       console.error("No color palette was provided");
       return throwError(() => new Error("No color palette was provided"));
     }
@@ -114,7 +114,7 @@ export class ImageService {
     return this.http.post<any[]>(
       `${this.baseUrl}/api/image/find-closest-dmc-colors`,
       {
-        color_palette: Array.from(palette),
+        color_palette: palette,
         request_count: requestCount
       }
     ).pipe(

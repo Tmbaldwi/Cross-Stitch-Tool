@@ -106,8 +106,10 @@ async def color_normalize_image(request: Request, body: Color_Palette_Request):
     request_count = body.request_count
     if request_count <= 0:
         raise HTTPException(status_code=400, detail="Request count must be larger than 0")
-    elif request_count > len(request.app.state.threads):
-        raise HTTPException(status_code=400, detail="Request count cannot be larger than the number of thread colors")
+    
+    thread_color_count = len(request.app.state.threads)
+    if request_count > thread_color_count:
+        request_count = thread_color_count
 
     try:
         thread_color_associations = get_thread_palette_suggestions_for_palette(color_palette, request_count, request)
