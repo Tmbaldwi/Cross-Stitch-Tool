@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, input, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ImageService } from '../../../services/image-service';
 import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -27,7 +27,6 @@ export class ThreadSelectionStep implements AfterViewInit {
   readonly imageHistoryForm = input.required<FormGroup>();
   public stepper = inject(CdkStepper)
   private service = inject(ImageService)
-  private cdr = inject(ChangeDetectorRef);
   private originalImageBitmap: ImageBitmap | null = null;
   private modifiedImageBitmap: ImageBitmap | null = null;
 
@@ -36,10 +35,12 @@ export class ThreadSelectionStep implements AfterViewInit {
   public colorCoordinates : Map<string, number[]> | null = null;
   public threadSuggestions : Record<string, string[]> = {};
   public threadMasterList : Record<string, ThreadColor> = {};
+  public paletteColorKeys = signal<string[]>([]);
 
   ngAfterViewInit() {
     this.stepper.selectionChange.subscribe((event) => {
       if (this.imageReadyForThreadSelection(event)) {
+        this.clearState();
         this.onPageLoad();
       }
     });
@@ -58,9 +59,20 @@ export class ThreadSelectionStep implements AfterViewInit {
     });
   }
 
+  clearState(): void {
+    this.originalImageBitmap = null;
+    this.modifiedImageBitmap = null;
+    this.isLoading.set(false);
+    this.errorMessage.set(null);
+    this.colorCoordinates = null;
+    this.threadSuggestions = {};
+    this.threadMasterList = {};
+    this.paletteColorKeys.set([]);
+  }
+
   imageReadyForThreadSelection(event: StepperSelectionEvent) : boolean {
-    const normalizedImageControl = this.imageHistoryForm().get('normalizedImageBitmap');
-    return event.selectedIndex === 3 && normalizedImageControl?.value != null;
+    const threadSelections = this.imageHistoryForm().get('threadSelections');
+    return event.selectedIndex === 3 && threadSelections?.value == null;
   }
 
   async loadPaletteMatches() : Promise<void>{
@@ -89,7 +101,7 @@ export class ThreadSelectionStep implements AfterViewInit {
           initialThreadSelections[color] = existing[color] ?? null;
         }
         this.imageHistoryForm().get('threadSelections')?.setValue(initialThreadSelections);
-        this.cdr.detectChanges();
+        this.paletteColorKeys.set(Object.keys(initialThreadSelections));
       },
       error: (err) => {
         console.error("Thread suggestion process failed: ", err);
@@ -170,14 +182,11 @@ export class ThreadSelectionStep implements AfterViewInit {
     });
   }
 
-  get paletteColors(): string[] {
-    const hexColors: string[] = Object.keys(this.imageHistoryForm().get('threadSelections')?.value ?? {});
-
-    // Hs1 sorting, sorts by rainbow
-    return [...hexColors].sort((a,b) => {
-      const hs1A = rgbToHsl(hexToRgb(a));
-      const hs1B = rgbToHsl(hexToRgb(b));
-      return hs1A.h - hs1B.h;
-    })
-  }
+  public paletteColors = computed(() => {
+    return [...this.paletteColorKeys()].sort((a, b) => {
+      const hslA = rgbToHsl(hexToRgb(a));
+      const hslB = rgbToHsl(hexToRgb(b));
+      return hslA.h - hslB.h;
+    });
+  });
 }

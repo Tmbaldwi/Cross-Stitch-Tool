@@ -2,7 +2,7 @@
     <p-splitter [panelSizes]="[25,75]" [style]="{ height: '1000px' }" class="mb-8">
         <ng-template #panel>
             <div class="palette-panel">
-                @for (originalColor of paletteColors; track originalColor){
+                @for (originalColor of paletteColors(); track originalColor){
                     <app-color-card 
                         [colorHex]="originalColor"
                         [colorOptions]="this.threadSuggestions[originalColor]"

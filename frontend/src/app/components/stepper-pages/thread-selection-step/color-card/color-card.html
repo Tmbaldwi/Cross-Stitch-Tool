@@ -3,8 +3,8 @@
         <div [style.background-color]="colorHex()"></div>
         <div [style.background-color]="colorChoiceBg()"></div>
     </div>
-    <div class="color-list">
-        <div class="color-choice-container">
+    <div class="color-choice-container">
+        <div class="color-choice-selected-title">
             @if(colorChoice() == null){
                 Select a Thread
             }
@@ -13,22 +13,24 @@
             }
             
         </div>
-        <mat-radio-group
-        [(ngModel)]="colorChoice">
-            @for (option of colorOptions(); track option) {
-            <mat-radio-button 
-                [value]="option"
-                (change)="onColorChoice(option)"
+        <div class="color-choice-options">
+            <mat-radio-group
+            [(ngModel)]="colorChoice">
+                @for (option of colorOptions(); track option) {
+                <mat-radio-button 
+                    [value]="option"
+                    (change)="onColorChoice(option)"
+                >
+                    {{threadMasterList()[option].name}}
+                </mat-radio-button>
+                }
+            </mat-radio-group>
+            <button matButton 
+                [style]="'color: white'"
+                (click)="onShowMore()"
             >
-                {{threadMasterList()[option].name}}
-            </mat-radio-button>
-            }
-        </mat-radio-group>
-        <button matButton 
-            [style]="'color: white'"
-            (click)="onShowMore()"
-        >
-            Show More
-        </button>
+                Show More
+            </button>
+        </div>
     </div>
 </div>

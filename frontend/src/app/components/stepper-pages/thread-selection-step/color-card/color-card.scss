@@ -1,14 +1,13 @@
 .card {
     display: flex;
     flex-direction: column;
-    min-width: 200px;
-    max-height: 350px;
+    height: 380px;
     border: 2px solid grey;
     border-radius: 10px;
+    overflow: hidden;
 }
 
 .color-display {
-    flex: 1;
     display: flex;
 }
 
@@ -22,24 +21,24 @@
     border-right: 2px solid grey;
 }
 
-.color-original {
-    background-color: blue;
+.color-choice-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px 10px 0px 10px;
+    overflow: auto;
 }
 
-.color-chosen {
-    background-color: aqua;
-}
-
-.color-choice-container{
+.color-choice-selected-title{
     padding: 10px;
     border-bottom: 1px solid grey;
     font-size: medium;
 }
 
-.color-list {
-    flex: 4;
+.color-choice-options{
     display: flex;
     flex-direction: column;
+    height: 100%;
     padding: 10px;
     overflow: auto;
 }
@@ -47,4 +46,9 @@
 mat-radio-group {
     display: flex;
     flex-direction: column;
+}
+
+.color-choice-options button {
+    min-height: 48px;
+    margin-top: auto;
 }
