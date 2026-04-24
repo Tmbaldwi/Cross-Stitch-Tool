@@ -48,6 +48,13 @@ mat-radio-group {
     flex-direction: column;
 }
 
+.loading-box{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+}
+
 .color-choice-options button {
     min-height: 48px;
     margin-top: auto;

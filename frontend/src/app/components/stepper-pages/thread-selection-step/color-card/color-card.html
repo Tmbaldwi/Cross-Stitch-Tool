@@ -25,9 +25,17 @@
                 </mat-radio-button>
                 }
             </mat-radio-group>
+            @if(suggestionsLoading()){
+                <div class="loading-box">
+                    <span>Loading...</span>
+
+                </div>
+            }
             <button matButton 
                 [style]="'color: white'"
                 (click)="onShowMore()"
+                [disabled]="showMoreDisabled()"
+                [hidden]="showMoreDisabled()"
             >
                 Show More
             </button>

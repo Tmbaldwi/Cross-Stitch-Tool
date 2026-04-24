@@ -18,9 +18,9 @@ export class ColorCard {
   readonly fetchSize = input.required<number>();
   colorOptions = model<string[]>();
   colorChoice = signal<string | null>(null);
+  suggestionsLoading = signal(false);
 
   private service = inject(ImageService)
-  private maxThreadColors : number = this.threadMasterList.length;
 
   protected colorChoiceBg = computed(() => {
     const choice = this.colorChoice();
@@ -28,6 +28,10 @@ export class ColorCard {
       ? this.colorHex()
       : this.threadMasterList()[choice].hex_value;
   });
+
+  showMoreDisabled = computed(() => {
+    return this.suggestionsLoading() || this.colorOptions()?.length == Object.keys(this.threadMasterList()).length;
+  })
 
   constructor() {
     effect(() => {
@@ -40,15 +44,19 @@ export class ColorCard {
   }
 
   onShowMore() : void {
-    let newColorCount = this.colorOptions()!.length + this.fetchSize();
+    let newColorCount = Math.min(this.colorOptions()!.length + this.fetchSize(), Object.keys(this.threadMasterList()).length);
     let color : string[] = [ this.colorHex() ];
-
+    
+    this.suggestionsLoading.set(true);
     this.service.getThreadColorSuggestions(color, newColorCount).subscribe({
       next: (suggestions) => {
         this.colorOptions.set(suggestions[this.colorHex()]);
       },
       error: (err) => {
         console.error("Show more thread suggestion process failed: ", err);
+      },
+      complete: () => {
+        this.suggestionsLoading.set(false);
       }
     })
   }

@@ -79,6 +79,7 @@ export class ThreadSelectionStep implements AfterViewInit {
     const threadColors$ = this.service.getThreadColorMasterList();
     const paletteProcessing$ = of(this.processImagePixels());
 
+    this.isLoading.set(true);
     forkJoin({
       threadColors: threadColors$,
       imageDetails: paletteProcessing$
@@ -105,6 +106,9 @@ export class ThreadSelectionStep implements AfterViewInit {
       },
       error: (err) => {
         console.error("Thread suggestion process failed: ", err);
+      },
+      complete: () => {
+        this.isLoading.set(false)
       }
     })
   }
