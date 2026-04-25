@@ -38,18 +38,22 @@ canvas{
     justify-content: space-between;
 }
 
-.palette-panel { // TODO fix alignment
+.palette-panel-temp {
+    height: 100%;
+    direction: rtl; // Place scrollbar on left
+    overflow-y: auto;
+
+    & > * {
+        direction: ltr;
+    }
+}
+
+.palette-panel {
     display: grid;
     grid-template-columns: repeat(auto-fill, 250px);
     gap: 1rem;
     padding: 1rem;
     align-content: start;
     justify-content: center;
-    overflow-y: auto;
     height: 100%;
-    direction: rtl;
-
-    & > * {
-        direction: ltr;
-    }
 }

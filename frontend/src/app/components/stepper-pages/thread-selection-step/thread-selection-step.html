@@ -1,21 +1,23 @@
 <div class="card">
     <p-splitter [panelSizes]="[25,75]" [style]="{ height: '1000px' }" class="mb-8">
         <ng-template #panel>
-            <div class="palette-panel">
-                @if(isLoading()){
-                    <span>Loading ...</span>
-                }
-                @else {
-                    @for (originalColor of paletteColors(); track originalColor){
-                        <app-color-card 
-                            [colorHex]="originalColor"
-                            [colorOptions]="this.threadSuggestions[originalColor]"
-                            [threadMasterList]="this.threadMasterList"
-                            [colorSwap]="getColorSwapFn(originalColor)"
-                            [fetchSize]="200"
-                        />
+            <div class="palette-panel-temp">
+                <div class="palette-panel">
+                    @if(isLoading()){
+                        <span>Loading ...</span>
                     }
-                }
+                    @else {
+                        @for (originalColor of paletteColors(); track originalColor){
+                            <app-color-card 
+                                [colorHex]="originalColor"
+                                [colorOptions]="this.threadSuggestions[originalColor]"
+                                [threadMasterList]="this.threadMasterList"
+                                [colorSwap]="getColorSwapFn(originalColor)"
+                                [fetchSize]="200"
+                            />
+                        }
+                    }
+                </div>
             </div>
         </ng-template>
         <ng-template #panel>
