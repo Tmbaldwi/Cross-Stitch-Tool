@@ -1,5 +1,5 @@
 export interface ThreadColor{
-    id: number;
+    dmc_id: string;
     name: string;
     rgb: Array<number>;
     hex_value: string;

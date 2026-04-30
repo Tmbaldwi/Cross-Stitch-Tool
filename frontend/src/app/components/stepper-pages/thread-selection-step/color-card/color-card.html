@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="color-display">
+        <div [style.background-color]="colorHex()"></div>
+        <div [style.background-color]="colorChoiceBg()"></div>
+    </div>
+    <div class="color-choice-container">
+        <div class="color-choice-selected-title">
+            @if(colorChoice() == null){
+                Select a Thread
+            }
+            @else{
+                {{ threadMasterList()[colorChoice()!].name }}
+            }
+            
+        </div>
+        <div class="color-choice-options">
+            <mat-radio-group
+            [(ngModel)]="colorChoice">
+                @for (option of colorOptions(); track option) {
+                <mat-radio-button 
+                    [value]="option"
+                    (change)="onColorChoice(option)"
+                >
+                    {{threadMasterList()[option].name}}
+                </mat-radio-button>
+                }
+            </mat-radio-group>
+            @if(suggestionsLoading()){
+                <div class="loading-box">
+                    <span>Loading...</span>
+
+                </div>
+            }
+            <button matButton 
+                [style]="'color: white'"
+                (click)="onShowMore()"
+                [disabled]="showMoreDisabled()"
+                [hidden]="showMoreDisabled()"
+            >
+                Show More
+            </button>
+        </div>
+    </div>
+</div>

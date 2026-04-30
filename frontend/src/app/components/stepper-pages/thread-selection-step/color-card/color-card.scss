@@ -1,0 +1,61 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 380px;
+    border: 2px solid grey;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.color-display {
+    display: flex;
+}
+
+.color-display > div {
+    flex: 1;
+    height: 50px;
+    border-bottom: 2px solid grey;
+}
+
+.color-display > div:first-child{
+    border-right: 2px solid grey;
+}
+
+.color-choice-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px 10px 0px 10px;
+    overflow: auto;
+}
+
+.color-choice-selected-title{
+    padding: 10px;
+    border-bottom: 1px solid grey;
+    font-size: medium;
+}
+
+.color-choice-options{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    overflow: auto;
+}
+
+mat-radio-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.loading-box{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+}
+
+.color-choice-options button {
+    min-height: 48px;
+    margin-top: auto;
+}

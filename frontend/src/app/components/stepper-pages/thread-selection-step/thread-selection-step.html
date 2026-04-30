@@ -1,0 +1,54 @@
+<div class="card">
+    <p-splitter [panelSizes]="[25,75]" [style]="{ height: '1000px' }" class="mb-8">
+        <ng-template #panel>
+            <div class="palette-panel-container">
+                <div class="palette-panel-content">
+                    @if(isLoading()){
+                        <div class="loading-screen">
+                            <span>Loading ...</span>
+                        </div>
+                    }
+                    @else {
+                        <div class="palette-panel">
+                            @for (originalColor of paletteColors(); track originalColor){
+                                    <app-color-card 
+                                        [colorHex]="originalColor"
+                                        [colorOptions]="this.threadSuggestions[originalColor]"
+                                        [threadMasterList]="this.threadMasterList"
+                                        [colorSwap]="getColorSwapFn(originalColor)"
+                                        [fetchSize]="200"
+                                    />
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </ng-template>
+        <ng-template #panel>
+            <div class="container">
+                <div class="contents">
+                    <app-image-frame 
+                        class="image-frame"
+                        [isLoading]="isLoading()"
+                        [showTextBox]="true"
+                        [errorMessage]="errorMessage()"
+                    >
+                        <canvas #canvas id="thread-selection-canvas"></canvas>
+                    </app-image-frame>
+                    <div class="button-container">
+                        <div class="back-button-box">
+                            <button 
+                                matButton="filled"
+                                matStepperPrevious
+                                (click)="stepper.previous()"
+                                class="light-scheme-button"
+                            >
+                                &larr; Back
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </p-splitter>
+</div>

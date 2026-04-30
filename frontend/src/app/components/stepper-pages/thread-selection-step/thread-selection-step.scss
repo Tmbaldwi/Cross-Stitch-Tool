@@ -1,0 +1,73 @@
+::ng-deep .p-splitter .p-splitter-gutter {
+    background-color: #333;
+}
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.contents{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.image-frame{
+    width: 100%;
+}
+
+canvas{
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    height: 100%;
+    width: 100%;
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.button-container{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.palette-panel-container {
+    display: flex;
+    height: 100%;
+    direction: rtl; // Place scrollbar on left
+    overflow-y: auto;
+
+    & > * {
+        direction: ltr;
+    }
+}
+
+.palette-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 250px);
+    gap: 1rem;
+    padding: 1rem;
+    align-content: start;
+    justify-content: center;
+    height: 100%;
+}
+
+.palette-panel-content {
+    flex: 1;
+    height: 100%;
+}
+
+.loading-screen{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    font-size: large;
+}
