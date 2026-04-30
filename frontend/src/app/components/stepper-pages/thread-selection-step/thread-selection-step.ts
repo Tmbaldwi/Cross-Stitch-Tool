@@ -30,7 +30,7 @@ export class ThreadSelectionStep implements AfterViewInit {
   private originalImageBitmap: ImageBitmap | null = null;
   private modifiedImageBitmap: ImageBitmap | null = null;
 
-  public isLoading = signal(false);
+  public isLoading = signal(true);
   public errorMessage = signal<string | null>(null);
   public colorCoordinates : Map<string, number[]> | null = null;
   public threadSuggestions : Record<string, string[]> = {};

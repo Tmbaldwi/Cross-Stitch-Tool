@@ -38,7 +38,8 @@ canvas{
     justify-content: space-between;
 }
 
-.palette-panel-temp {
+.palette-panel-container {
+    display: flex;
     height: 100%;
     direction: rtl; // Place scrollbar on left
     overflow-y: auto;
@@ -56,4 +57,17 @@ canvas{
     align-content: start;
     justify-content: center;
     height: 100%;
+}
+
+.palette-panel-content {
+    flex: 1;
+    height: 100%;
+}
+
+.loading-screen{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    font-size: large;
 }
