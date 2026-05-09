@@ -16,7 +16,7 @@
                                         [colorOptions]="this.threadSuggestions[originalColor]"
                                         [threadMasterList]="this.threadMasterList"
                                         [colorSwap]="getColorSwapFn(originalColor)"
-                                        [fetchSize]="200"
+                                        [fetchSize]="this.FetchSize"
                                     />
                             }
                         </div>
@@ -28,7 +28,6 @@
             <div class="container">
                 <div class="contents">
                     <app-image-frame 
-                        class="image-frame"
                         [isLoading]="isLoading()"
                         [showTextBox]="true"
                         [errorMessage]="errorMessage()"

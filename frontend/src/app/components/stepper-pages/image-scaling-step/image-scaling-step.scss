@@ -3,6 +3,8 @@
     flex-direction: column;
     align-items: center;
     margin-top: 10px;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .contents{
@@ -14,8 +16,14 @@
     max-width: 1000px;
 }
 
-.image-frame{
+app-image-frame{
     width: 100%;
+    min-width: 200px;
+    max-width: 1000px;
+
+    height: min(50vh, 500px);
+    min-height: 100px;
+    max-height: 500px;
 }
 
 canvas{
