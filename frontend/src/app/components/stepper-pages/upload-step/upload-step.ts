@@ -1,10 +1,11 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { ImageFrame } from "../../common/image-frame/image-frame";
 import { CdkStepper } from '@angular/cdk/stepper';
+import { ImageService } from '../../../services/image-service';
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
@@ -17,8 +18,9 @@ const unuploadedImageBorderStyle : string = '4px dashed';
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
-export class UploadStep {
+export class UploadStep implements OnInit, OnDestroy {
   private stepper = inject(CdkStepper);
+  private imageService = inject(ImageService)
   private selectedFileIdx = signal<number>(-1);
 
   public sampleImages = [ // TODO get sample images from backend
@@ -26,6 +28,8 @@ export class UploadStep {
     { id: 2, imageUrl: 'https://picsum.photos/600/300' },
     { id: 3, imageUrl: 'https://picsum.photos/500/400' },
   ];
+  files = signal<File[]>([]);
+  imageUrls = signal<any>([]); // TODO fix type
 
   public readonly imageHistoryForm = input.required<FormGroup>();
   public file = signal<File | null>(null);
@@ -43,6 +47,27 @@ export class UploadStep {
       ? `${borderStyle} ${selectedBorderColor}`
       : `${borderStyle} ${unselectedBorderColor}`;
   });
+
+  ngOnInit(): void {
+    this.imageService.getSampleImages(3).subscribe({
+      next: (files) => {
+        this.files.set(files)
+        this.imageUrls.set(files.map((f) => ({
+          id: f.name,
+          imageUrl: URL.createObjectURL(f)
+        })));
+        console.log(this.imageUrls())
+      },
+      error: (err: Error) => {
+        console.log("Error: ", err) // TODO FIX
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.imageUrls().forEach((url : any) => URL.revokeObjectURL(url.imageUrl)); // TODO fix
+    this.imageUrls.set([])
+  }
 
   isNextButtonDisabled(){
     return this.imageHistoryForm().get('originalImage')?.invalid;

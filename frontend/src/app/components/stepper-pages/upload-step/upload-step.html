@@ -38,7 +38,7 @@
         </app-image-frame>
 
         <div class="sample-image-container">
-            @for(image of sampleImages; track image.id){
+            @for(image of imageUrls(); track image.id){
                 <div 
                     class="image-box" 
                     (click)="selectImage(image.id)"
