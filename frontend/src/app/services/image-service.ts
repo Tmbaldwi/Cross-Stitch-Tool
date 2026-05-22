@@ -64,7 +64,8 @@ getSampleImages(numSamples: number): Observable<File[]> {
 }
 
   private async extractFilesFromZip(blob: Blob): Promise<File[]> {
-    const zip = await JSZip.loadAsync(blob);
+    const arrayBuffer = await blob.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
     const filePromises = Object.entries(zip.files)
       .filter(([_, zipEntry]) => !zipEntry.dir)

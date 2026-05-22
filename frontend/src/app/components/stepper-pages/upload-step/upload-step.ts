@@ -28,12 +28,12 @@ export class UploadStep implements OnInit, OnDestroy {
     { id: 2, imageUrl: 'https://picsum.photos/600/300' },
     { id: 3, imageUrl: 'https://picsum.photos/500/400' },
   ];
-  files = signal<File[]>([]);
-  imageUrls = signal<any>([]); // TODO fix type
 
   public readonly imageHistoryForm = input.required<FormGroup>();
   public file = signal<File | null>(null);
   public previewUrl: string | null = null;
+  public sampleImageFiles = signal<File[]>([]);
+  public sampleImageUrls = signal<{id: number; imageUrl: string}[]>([]);
   public errorMessage = signal<string | null>(null);
 
   sampleImageBoxBorder = computed(() => {
@@ -51,22 +51,21 @@ export class UploadStep implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.imageService.getSampleImages(3).subscribe({
       next: (files) => {
-        this.files.set(files)
-        this.imageUrls.set(files.map((f) => ({
-          id: f.name,
+        this.sampleImageFiles.set(files)
+        this.sampleImageUrls.set(files.map((f, idx) => ({
+          id: idx + 1,
           imageUrl: URL.createObjectURL(f)
         })));
-        console.log(this.imageUrls())
       },
       error: (err: Error) => {
-        console.log("Error: ", err) // TODO FIX
+        console.log("Sample image retrieval failed: ", err)
       }
     });
   }
 
   ngOnDestroy() {
-    this.imageUrls().forEach((url : any) => URL.revokeObjectURL(url.imageUrl)); // TODO fix
-    this.imageUrls.set([])
+    this.sampleImageUrls().forEach((url : any) => URL.revokeObjectURL(url.imageUrl));
+    this.sampleImageUrls.set([])
   }
 
   isNextButtonDisabled(){
@@ -75,12 +74,12 @@ export class UploadStep implements OnInit, OnDestroy {
 
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0 || files[0] == null) {
-      this.clearFile();
+      this.clearUploadFile();
       return;
     }
 
     // Clear previous and set form for validation
-    this.clearFile();
+    this.clearUploadFile();
     this.file.set(files[0]);
     this.imageHistoryForm().get('originalImage')?.setValue(this.file());
 
@@ -91,7 +90,7 @@ export class UploadStep implements OnInit, OnDestroy {
 
     if(fileControl?.invalid){
       this.imageHistoryForm().get('originalImage')?.setValue(null);
-      this.clearFile();
+      this.clearUploadFile();
       this.errorMessage.set("File type must be png, jpg, or jpeg")
       return;
     }
@@ -102,7 +101,7 @@ export class UploadStep implements OnInit, OnDestroy {
     this.selectImage(0);
   }
 
-  clearFile() {
+  clearUploadFile() {
     if (this.previewUrl) {
       URL.revokeObjectURL(this.previewUrl);
     }
@@ -110,10 +109,8 @@ export class UploadStep implements OnInit, OnDestroy {
     this.file.set(null);
     this.previewUrl = null;
 
-    // TODO this will need to be changed for sample images
-    this.clearImageFileHistory()
-
     if(this.selectedFileIdx() === 0){
+      this.clearImageFileHistory();
       this.selectedFileIdx.set(-1);
     }
   }
@@ -131,19 +128,18 @@ export class UploadStep implements OnInit, OnDestroy {
 
   selectImage(idx: number){
     this.selectedFileIdx.set(idx);
+    this.clearImageFileHistory();
 
     if(idx === 0 && this.file()){
-      // TODO adjust for sample images
       this.imageHistoryForm().get('originalImage')?.setValue(this.file());
     }
-
-    if(idx > 0){
-      // TODO handle sample images
+    else if(idx > 0 && idx <= this.sampleImageUrls().length){
+      this.imageHistoryForm().get('originalImage')?.setValue(this.sampleImageFiles()[idx-1])
     }
   }
 
   onCloseClick(event: Event){
     event.stopPropagation();
-    this.clearFile();
+    this.clearUploadFile();
   }
 }
