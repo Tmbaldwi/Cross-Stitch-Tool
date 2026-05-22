@@ -1,10 +1,11 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { ImageFrame } from "../../common/image-frame/image-frame";
 import { CdkStepper } from '@angular/cdk/stepper';
+import { ImageService } from '../../../services/image-service';
 
 const selectedBorderColor : string = "#005CBB";
 const unselectedBorderColor : string = 'grey';
@@ -17,8 +18,9 @@ const unuploadedImageBorderStyle : string = '4px dashed';
   templateUrl: './upload-step.html',
   styleUrl: './upload-step.scss',
 })
-export class UploadStep {
+export class UploadStep implements OnInit, OnDestroy {
   private stepper = inject(CdkStepper);
+  private imageService = inject(ImageService)
   private selectedFileIdx = signal<number>(-1);
 
   public sampleImages = [ // TODO get sample images from backend
@@ -30,6 +32,8 @@ export class UploadStep {
   public readonly imageHistoryForm = input.required<FormGroup>();
   public file = signal<File | null>(null);
   public previewUrl: string | null = null;
+  public sampleImageFiles = signal<File[]>([]);
+  public sampleImageUrls = signal<{id: number; imageUrl: string}[]>([]);
   public errorMessage = signal<string | null>(null);
 
   sampleImageBoxBorder = computed(() => {
@@ -44,18 +48,38 @@ export class UploadStep {
       : `${borderStyle} ${unselectedBorderColor}`;
   });
 
+  ngOnInit(): void {
+    this.imageService.getSampleImages(3).subscribe({
+      next: (files) => {
+        this.sampleImageFiles.set(files)
+        this.sampleImageUrls.set(files.map((f, idx) => ({
+          id: idx + 1,
+          imageUrl: URL.createObjectURL(f)
+        })));
+      },
+      error: (err: Error) => {
+        console.log("Sample image retrieval failed: ", err)
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.sampleImageUrls().forEach((url : any) => URL.revokeObjectURL(url.imageUrl));
+    this.sampleImageUrls.set([])
+  }
+
   isNextButtonDisabled(){
     return this.imageHistoryForm().get('originalImage')?.invalid;
   }
 
   onFileChange(files: FileList | null) {
     if (!files || files.length === 0 || files[0] == null) {
-      this.clearFile();
+      this.clearUploadFile();
       return;
     }
 
     // Clear previous and set form for validation
-    this.clearFile();
+    this.clearUploadFile();
     this.file.set(files[0]);
     this.imageHistoryForm().get('originalImage')?.setValue(this.file());
 
@@ -66,7 +90,7 @@ export class UploadStep {
 
     if(fileControl?.invalid){
       this.imageHistoryForm().get('originalImage')?.setValue(null);
-      this.clearFile();
+      this.clearUploadFile();
       this.errorMessage.set("File type must be png, jpg, or jpeg")
       return;
     }
@@ -77,7 +101,7 @@ export class UploadStep {
     this.selectImage(0);
   }
 
-  clearFile() {
+  clearUploadFile() {
     if (this.previewUrl) {
       URL.revokeObjectURL(this.previewUrl);
     }
@@ -85,10 +109,8 @@ export class UploadStep {
     this.file.set(null);
     this.previewUrl = null;
 
-    // TODO this will need to be changed for sample images
-    this.clearImageFileHistory()
-
     if(this.selectedFileIdx() === 0){
+      this.clearImageFileHistory();
       this.selectedFileIdx.set(-1);
     }
   }
@@ -106,19 +128,18 @@ export class UploadStep {
 
   selectImage(idx: number){
     this.selectedFileIdx.set(idx);
+    this.clearImageFileHistory();
 
     if(idx === 0 && this.file()){
-      // TODO adjust for sample images
       this.imageHistoryForm().get('originalImage')?.setValue(this.file());
     }
-
-    if(idx > 0){
-      // TODO handle sample images
+    else if(idx > 0 && idx <= this.sampleImageUrls().length){
+      this.imageHistoryForm().get('originalImage')?.setValue(this.sampleImageFiles()[idx-1])
     }
   }
 
   onCloseClick(event: Event){
     event.stopPropagation();
-    this.clearFile();
+    this.clearUploadFile();
   }
 }

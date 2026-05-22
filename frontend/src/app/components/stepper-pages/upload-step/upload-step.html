@@ -37,18 +37,6 @@
             }
         </app-image-frame>
 
-        <div class="sample-image-container">
-            @for(image of sampleImages; track image.id){
-                <div 
-                    class="image-box" 
-                    (click)="selectImage(image.id)"
-                    [style.border-color]="sampleImageBoxBorder()(image.id)"
-                >
-                    <img [src]="image.imageUrl">
-                </div>
-            }
-        </div>
-        
         <div class="button-box">
             <button 
                 matButton="filled"
@@ -58,6 +46,18 @@
             >
                 Scale Image &rarr;
             </button>
+        </div>
+
+        <div class="sample-image-container">
+            @for(image of sampleImageUrls(); track image.id){
+                <div 
+                    class="image-box" 
+                    (click)="selectImage(image.id)"
+                    [style.border-color]="sampleImageBoxBorder()(image.id)"
+                >
+                    <img [src]="image.imageUrl">
+                </div>
+            }
         </div>
     </div>
 </section>

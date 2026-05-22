@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from './../../../environments/environment';
 import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { ImageRescaleResponse } from './models/image-rescale-response.model';
 import { ImageColorNormalizeResponse } from './models/image-color-normalize-response.model';
 import { ThreadColor } from './models/thread-color.model';
+import JSZip from 'jszip';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,76 @@ import { ThreadColor } from './models/thread-color.model';
 export class ImageService {
   private http = inject(HttpClient)
   private baseUrl = environment.apiBaseUrl;
+
+  // TODO consider trying to use http client, otherwise just leave it
+
+// getSampleImages(numSamples: number): Observable<File[]> {
+//   return this.http.get(
+//     `${this.baseUrl}/api/image/sample-images?n=${numSamples}`,
+//     { responseType: 'blob' }
+//   ).pipe(
+//     catchError((error: HttpErrorResponse) => {
+//       // When responseType is 'blob', errors also come back as Blobs — must read as text first
+//       if (error.error instanceof Blob) {
+//         return from(error.error.text()).pipe(
+//           switchMap((text) => {
+//             try {
+//               const parsed = JSON.parse(text);
+//               return throwError(() => new Error(`Server error ${error.status}: ${parsed.detail ?? error.statusText}`));
+//             } catch {
+//               return throwError(() => new Error(`Server error ${error.status}: ${error.statusText}`));
+//             }
+//           })
+//         );
+//       }
+//       return throwError(() => new Error(error.message));
+//     }),
+//     switchMap((blob) => from(this.extractFilesFromZip(blob)))
+//   );
+// }
+
+getSampleImages(numSamples: number): Observable<File[]> {
+  const url = `${this.baseUrl}/api/image/sample-images?n=${numSamples}`;
+
+  return from(
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(`Server error ${response.status}: ${err.detail ?? response.statusText}`);
+          });
+        }
+        return response.blob();
+      })
+      .then(blob => this.extractFilesFromZip(blob))
+  ).pipe(
+    catchError(err => {
+      console.error('Sample image get failed:', err);
+      return throwError(() => err as Error);
+    })
+  );
+}
+
+  private async extractFilesFromZip(blob: Blob): Promise<File[]> {
+    const arrayBuffer = await blob.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+
+    const filePromises = Object.entries(zip.files)
+      .filter(([_, zipEntry]) => !zipEntry.dir)
+      .map(async ([filename, zipEntry]) => {
+        const fileBlob = await zipEntry.async('blob');
+        const ext = filename.split('.').pop()?.toLowerCase();
+        const mimeMap: Record<string, string> = {
+          png: 'image/png',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+        };
+        const mime = mimeMap[ext ?? ''] ?? 'application/octet-stream';
+        return new File([fileBlob], filename, { type: mime });
+      });
+
+    return Promise.all(filePromises);
+  }
 
   getRescaledImage(image: File) : Observable<ImageRescaleResponse>{
     if(!image){

@@ -1,4 +1,7 @@
 import io
+import os
+import random
+import zipfile
 from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFile
 import numpy as np
 from PIL import Image
@@ -10,6 +13,30 @@ router = APIRouter(
     prefix="/image",
     tags=["Image"]
 )
+
+@router.get("/sample-images")
+def get_sample_images(n: int, request: Request):
+    resource_path = "app\\resources"
+    sample_image_paths = [os.path.join(resource_path, file_name) for file_name in os.listdir(resource_path)]
+
+    if n < 1 or n > len(sample_image_paths):
+        raise HTTPException(status_code=400, detail="Requested number of sample images is out of range")
+    
+    unique_sample_indices = random.sample(range(len(sample_image_paths)), n)
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_STORED) as zf:
+        for idx in unique_sample_indices:
+            path = sample_image_paths[idx]
+            zf.write(path, arcname=os.path.basename(path))
+    
+    zip_buffer.seek(0)
+    
+    return Response(
+        content=zip_buffer.read(),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=images.zip"}
+    )
 
 @router.post("/rescale-image", summary= "Analyzes the provided image and returns a (potentially) compressed image along with dimensional changes.")
 async def rescale_image(image_file: UploadFile = File(...)):
