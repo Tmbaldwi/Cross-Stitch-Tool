@@ -4,6 +4,8 @@
             [isLoading]="isLoading()"
             [showTextBox]="true"
             [errorMessage]="errorMessage()"
+            [showRetry]="true"
+            (retryClicked)="colorNormalizeImage()"
         >
             <canvas #canvas></canvas>
         </app-image-frame>

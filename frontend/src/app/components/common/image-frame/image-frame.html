@@ -20,4 +20,16 @@
       <span>Failed</span>
     </div>
   }
+
+  @if (showRetry()) {
+    <button 
+        mat-icon-button 
+        aria-label="Retry dialog" 
+        class="retry-button"
+        (click)="onRetry()"
+    >
+        <mat-icon>refresh</mat-icon>
+    </button>
+  }
+
 </ng-template>

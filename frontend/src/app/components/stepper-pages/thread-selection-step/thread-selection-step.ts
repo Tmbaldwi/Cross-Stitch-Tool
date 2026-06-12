@@ -40,13 +40,14 @@ export class ThreadSelectionStep implements AfterViewInit {
   ngAfterViewInit() {
     this.stepper.selectionChange.subscribe((event) => {
       if (this.imageReadyForThreadSelection(event)) {
-        this.clearState();
         this.onPageLoad();
       }
     });
   }
 
   async onPageLoad(): Promise<void> {
+    this.clearState();
+
     const canvas = document.getElementById('thread-selection-canvas') as HTMLCanvasElement;
     this.originalImageBitmap = this.imageHistoryForm().get('normalizedImageBitmap')?.value;
     this.modifiedImageBitmap = await createImageBitmap(this.originalImageBitmap!);

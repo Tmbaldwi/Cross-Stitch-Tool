@@ -31,6 +31,8 @@
                         [isLoading]="isLoading()"
                         [showTextBox]="true"
                         [errorMessage]="errorMessage()"
+                        [showRetry]="true"
+                        (retryClicked)="onPageLoad()"
                     >
                         <canvas #canvas id="thread-selection-canvas"></canvas>
                     </app-image-frame>

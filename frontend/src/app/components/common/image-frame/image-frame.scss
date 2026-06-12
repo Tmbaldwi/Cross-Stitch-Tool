@@ -21,6 +21,12 @@
     padding: 10px;
 }
 
+.retry-button{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
 .loading-overlay, .error-overlay{
     position: absolute;
     display: flex;

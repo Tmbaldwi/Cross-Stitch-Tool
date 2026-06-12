@@ -81,6 +81,7 @@ export class ImageScalingStep {
 
   rescaleOriginalImage() {
     this.imageRescale = undefined;
+    this.imageHistoryForm().get('scaledImageBitmap')?.reset();
     clearCanvas(this.canvasRef.nativeElement);
 
     this.isLoading.set(true);

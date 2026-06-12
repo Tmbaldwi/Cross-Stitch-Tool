@@ -79,7 +79,9 @@ export class ImageNormalizationStep {
 
   colorNormalizeImage() {
       this.imageColorNormalize = undefined;
+      this.imageHistoryForm().get('normalizedImageBitmap')?.reset();
       clearCanvas(this.canvasRef.nativeElement);
+
       this.colorNormalizeImage$.next();
   }
 
