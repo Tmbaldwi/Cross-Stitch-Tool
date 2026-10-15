@@ -1,0 +1,24 @@
+:host {
+  display: inline-block;
+}
+
+.retry-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+}
+
+.retry-button.spinning mat-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

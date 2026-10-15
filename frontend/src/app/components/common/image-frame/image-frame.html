@@ -22,14 +22,9 @@
   }
 
   @if (showRetry()) {
-    <button 
-        mat-icon-button 
-        aria-label="Retry dialog" 
-        class="retry-button"
-        (click)="onRetry()"
-    >
-        <mat-icon>refresh</mat-icon>
-    </button>
+    <app-retry-button
+      [isLoading]="isLoading()"
+      (retryClicked)="onRetry()"
+    ></app-retry-button>
   }
-
 </ng-template>

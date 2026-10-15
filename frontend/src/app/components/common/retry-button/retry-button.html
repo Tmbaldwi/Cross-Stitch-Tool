@@ -1,0 +1,10 @@
+<button
+  mat-icon-button
+  aria-label="Retry"
+  class="retry-button"
+  [class.spinning]="isLoading()"
+  [disabled]="isLoading()"
+  (click)="onRetryClicked()"
+>
+  <mat-icon>refresh</mat-icon>
+</button>

@@ -1,16 +1,14 @@
 import { Component, input, output } from '@angular/core';
 import { FileDragAndDrop } from "../../../directives/file-drag-and-drop/file-drag-and-drop";
 import { NgTemplateOutlet } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatStepperModule } from '@angular/material/stepper';
-import { MatIconModule } from '@angular/material/icon';
+import { RetryButton } from '../retry-button/retry-button';
 
 @Component({
   selector: 'app-image-frame',
   templateUrl: './image-frame.html',
   styleUrl: './image-frame.scss',
   standalone: true,
-  imports: [FileDragAndDrop, NgTemplateOutlet, MatButtonModule, MatStepperModule, MatButtonModule, MatIconModule],
+  imports: [FileDragAndDrop, NgTemplateOutlet, RetryButton],
 })
 export class ImageFrame {
   errorMessage = input<string | null>(null)
